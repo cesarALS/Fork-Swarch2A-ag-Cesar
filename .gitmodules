@@ -1,0 +1,6 @@
+[submodule "auth"]
+	path = auth
+	url = git@github.com:SwArch-2025-1-2A/auth.git
+[submodule "backend"]
+	path = backend
+	url = git@github.com:SwArch-2025-1-2A/backend.git
