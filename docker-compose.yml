@@ -10,11 +10,11 @@ services:
   ports:
    - ${mu_ag_EXPOSED_PORT:-4000}:4000
  
-# include:
-#   # Main API
-#   - path: backend/docker-compose.yml
-#     project_directory: backend/
+include:
+  # Main API
+  - path: backend/docker-compose.yml
+    project_directory: backend/
 
-#   # Auth MS
-#   - path: auth/docker-compose.yml
-#     project_directory: auth/
+  # Auth MS
+  - path: auth/docker-compose.yml
+    project_directory: auth/
