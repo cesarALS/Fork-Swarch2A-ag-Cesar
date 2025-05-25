@@ -16,14 +16,8 @@ npm start
 
 ## Running using Docker
 
-If you want to execute this project using Docker, first build an image with:
+If you want to execute this project using Docker, just use this command:
 
 ```sh
-docker build -t <image_name> .
-```
-
-Then you can run it with the following command:
-
-```sh
-docker run -p 4000:4000 <image_name>
+docker compose up --build
 ```

@@ -1,0 +1,20 @@
+services:
+ mu_ag:
+  build:
+   context: .
+  
+  container_name: ${mu_ag_HOSTNAME:-mu_ag}
+  
+  hostname: ${mu_ag_HOSTNAME:-mu_ag}
+
+  ports:
+   - ${mu_ag_EXPOSED_PORT:-4000}:4000
+ 
+# include:
+#   # Main API
+#   - path: backend/docker-compose.yml
+#     project_directory: backend/
+
+#   # Auth MS
+#   - path: auth/docker-compose.yml
+#     project_directory: auth/
