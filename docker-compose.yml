@@ -7,8 +7,12 @@ services:
   
   hostname: ${mu_ag_HOSTNAME:-mu_ag}
 
+  expose:
+    - ${mu_ag_INTERNAL_PORT:-4000} 
+
   ports:
    - ${mu_ag_EXPOSED_PORT:-4000}:4000
+
  
 include:
   # Main API
