@@ -15,9 +15,9 @@ services:
 
  
 include:
-  # Main API
-  - path: backend/docker-compose.yml
-    project_directory: backend/
+  # Groups MS
+  - path: groups_ms/docker-compose.yml
+    project_directory: groups_ms/
 
   # Auth MS
   - path: auth/docker-compose.yml
