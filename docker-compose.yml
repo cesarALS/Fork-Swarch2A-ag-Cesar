@@ -2,7 +2,7 @@ services:
  mu_ag:
   build:
    context: .
-  
+
   container_name: ${mu_ag_HOSTNAME:-mu_ag}
   
   hostname: ${mu_ag_HOSTNAME:-mu_ag}
@@ -12,6 +12,9 @@ services:
 
   ports:
    - ${mu_ag_EXPOSED_PORT:-4000}:4000
+  
+  environment:
+    GROUPS_API: http://${mu_groups_ms_HOSTNAME:-mu_groups_ms}:${mu_groups_ms_EXPOSED_PORT:-8008}/api
 
  
 include:
