@@ -43,7 +43,8 @@ export const fetchAPI = async (
                 body = await response.json();
                 break;
             case (URL_TYPES.JPEG):
-                body = await response.blob();
+                const arrayBuf = await response.arrayBuffer();
+                body = Buffer.from(arrayBuf);
                 break;
         }
 

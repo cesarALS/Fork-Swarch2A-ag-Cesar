@@ -27,11 +27,16 @@ const typeDefs = `#graphql
       name: String!
     }
 
+    type Image {
+      data: String!  # Base64
+      mimeType: String!    
+    }
+
     type Group {
       id: ID!
       name: String! 
       description: String
-      profilePicUrl: String
+      profilePic: Image
       isVerified: Boolean!
       isOpen: Boolean!
       createdAt: Date!

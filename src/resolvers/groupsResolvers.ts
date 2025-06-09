@@ -9,7 +9,10 @@ interface Group {
     id: UUID
     name: string 
     description: string
-    profilePicUrl: string
+    profilePic: {
+        data: string
+        mimeType: string
+    }
     isVerified: boolean
     isOpen: boolean
     createdAt: Date
@@ -26,7 +29,22 @@ interface GroupFromAPI {
     updatedAt: string  
 }
 
-const getGroups = async () : Promise<Group[]> => {
+const getImage = async (url: string) => {
+    const response = await fetchAPI(url, URL_TYPES.JPEG)
+    if(response.status !== 200) {
+        console.error(`Could not fetch the API, ${response.status}`);
+        return;
+    }
+    else if (response.err) return;    
+    const body = response.body as Buffer;
+    return body.toString('base64');    
+}
+
+/**
+ * Resolver for groups type
+ * @returns 
+ */
+export const groupsResolver = async () => {    
     
     const response = await fetchAPI(`${URLS.GROUPS_API}/groups`)
     if (response.err) return;
@@ -44,40 +62,24 @@ const getGroups = async () : Promise<Group[]> => {
     
     const groups = body.data;
                      
-    const processedResponse: Group[] = groups.map(grp => {
-        return {                
-            ...grp,
+    const processedResponse: Group[] = await Promise.all(
+        groups.map(async (grp) => {
+            return {
+            id: grp.id,
+            name: grp.description,
+            description: grp.description,
+            profilePic: {
+                data: await getImage(grp.id),
+                mimeType: "jpeg",
+            },
+            isVerified: grp.isVerified,
+            isOpen: grp.isOpen,
             createdAt: new Date(grp.createdAt),
             updatedAt: new Date(grp.updatedAt),
+            };
         }
-    })
-
-    // Just some debugging:
-    // const seeImages = async () => {        
-    //     for(const grp of processedResponse) {
-    //         await getImage(grp.id)            
-    //     }
-    // }
-
-    // await seeImages();
+    ));
     
     // console.log(processedResponse)
     return processedResponse;
-
-}
-
-const getImage = async (id: UUID) => {
-    const response = await fetchAPI(`${URLS.GROUPS_API}/images/${id}`, URL_TYPES.JPEG)
-    console.log(response);
-}
-
-/**
- * Resolver for groups type
- * @returns 
- */
-export const groupsResolver = async () => {    
-    const groups = await getGroups()
-
-    // const returnGroups = groups.map(group)
-    return groups;
 } 
