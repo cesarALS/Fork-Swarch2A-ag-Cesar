@@ -30,7 +30,7 @@ const todos: Todo[] = [
     }
 ];
 
-const fetchTodos = () => {
+const todosResolver = () => {
   return todos.map(todo => (
     {
       ...todo,
@@ -68,4 +68,4 @@ const createTodo = (text: string, name: string) => {
   };
 }
 
-export { fetchTodos, createTodo }
+export { todosResolver, createTodo }
