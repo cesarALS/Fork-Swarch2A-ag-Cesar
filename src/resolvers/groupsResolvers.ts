@@ -37,7 +37,7 @@ const getImage = async (url: string) => {
     }
     else if (response.err) return;    
     const body = response.body as Buffer;
-    return body.toString('base64');    
+    return body.toString('base64');
 }
 
 /**
@@ -66,10 +66,10 @@ export const groupsResolver = async () => {
         groups.map(async (grp) => {
             return {
             id: grp.id,
-            name: grp.description,
+            name: grp.name,
             description: grp.description,
             profilePic: {
-                data: await getImage(grp.id),
+                data: await getImage(grp.profilePicUrl),
                 mimeType: "jpeg",
             },
             isVerified: grp.isVerified,
