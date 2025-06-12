@@ -14,43 +14,59 @@ export enum URL_TYPES {
     JPEG = "jpeg"
 }
 
+type BodyType <T> = {
+    data?: T,
+    status?: string,
+    error?: string,
+}
+
+type Body = string | Blob | ArrayBuffer | FormData | URLSearchParams | ReadableStream | null | undefined;
+
+interface FetchAPIParams {
+    url: string                                 // The url to fetch
+    responseType?: URL_TYPES                    // The type of response (Use URL_TYPES)
+    method?: "GET" | "POST" | "PUT" | "DELETE"  // The method (POST, PUT, GET, DELETE, etc.)
+    headers?: Headers                           // The headers provided
+    body?: Body                                 //The body of the request
+}
+
 /**
  * This is a generic function that wraps js fetch(), providing some aditional features
- * @param url       The url to fetch the 
- * @param method    The method (POST, PUT, GET, DELETE, etc.)
- * @param headers   The headers provided
- * @returns 
+ * @returns             The API response already processed
  */
-export const fetchAPI = async (
-    url: string, 
-    responseType: URL_TYPES = URL_TYPES.JSON, 
-    method?: string, 
-    headers?: Headers
+export const fetchAPI = async <ExpectedType>(
+    params: FetchAPIParams
 ) => {
     
-    try {
-        
+    const { url, responseType, method, headers, body } = params;
+    
+    try {                
+
         const response = await fetch(url, {
             method: method,
-            headers: headers
+            headers: headers,
+            body: body,
         })
 
         const status = response.status;
 
-        let body: unknown
+        let responseBody: unknown
         switch (responseType){
             case (URL_TYPES.JSON):
-                body = await response.json();
+                responseBody = await response.json();
                 break;
             case (URL_TYPES.JPEG):
                 const arrayBuf = await response.arrayBuffer();
-                body = Buffer.from(arrayBuf);
+                responseBody = Buffer.from(arrayBuf);
                 break;
+            default:
+                responseBody = await response.json();
+                break;                
         }
 
         return {
             status,
-            body,
+            responseBody: responseBody as BodyType<ExpectedType>,
             err: false
         }
         
@@ -62,7 +78,7 @@ export const fetchAPI = async (
         
         return {
             status: undefined,
-            body: undefined,
+            responseBody: undefined,
             err: true
         }
     }

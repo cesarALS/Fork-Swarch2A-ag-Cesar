@@ -1,7 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { todosResolver, createTodo } from './resolvers/todoResolvers.js';
-import { groupsResolver } from './resolvers/groupsResolvers.js';
+import { CreateGroup, createGroupResolver, groupsResolver } from './resolvers/groupsResolvers.js';
 import { dateScalar } from './customScalars.js';
 
 // Here, we define our graphql schema
@@ -32,6 +32,11 @@ const typeDefs = `#graphql
       mimeType: String!    
     }
 
+    input ImageInput {
+      data: String!  # Base64
+      mimeType: String!        
+    }
+
     type Group {
       id: ID!
       name: String! 
@@ -43,6 +48,24 @@ const typeDefs = `#graphql
       updatedAt: Date!
     }
 
+    type GroupWithImageURL {
+      id: ID!
+      name: String! 
+      description: String
+      profilePicUrl: String
+      isVerified: Boolean!
+      isOpen: Boolean!
+      createdAt: Date!
+      updatedAt: Date!   
+    }
+
+    input NewGroup {
+      name: String!
+      description: String,
+      profilePic: ImageInput,
+      isOpen: Boolean!
+    }
+
     type Query {
       todos: [Todo!]!
       groups: [Group!]!
@@ -50,6 +73,7 @@ const typeDefs = `#graphql
 
     type Mutation {
       createTodo(input: NewTodo!): Todo!
+      createGroup(input: NewGroup!): GroupWithImageURL!
     }    
 `;
 
@@ -63,9 +87,12 @@ const resolvers = {
     groups: async() => groupsResolver()
   },
   Mutation: {
-    createTodo: (_: any, { input }: { input: { text: string, name: string } }) => {
+    createTodo:   (_: any, { input }: { input: { text: string, name: string } }) => {
       return createTodo(input.text, input.name); 
-    }
+    },
+    createGroup:  async ( _: any, { input } : { input : CreateGroup}) => {
+      return await createGroupResolver(input);
+    },
   },
 };
 
