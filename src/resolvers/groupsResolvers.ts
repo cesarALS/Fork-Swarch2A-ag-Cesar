@@ -41,9 +41,10 @@ const getImage = async (url: string) => {
         console.error(`Could not fetch the API, ${response.status}`);
         return;
     }
-    else if (response.err) return;    
-    const body = response.responseBody as Buffer;
-    return body.toString('base64');
+    else if (response.err) return;
+
+    const body = response.responseBody as Buffer;    
+    return body.toString('base64');    
 }
 
 /**
@@ -91,7 +92,8 @@ export const groupsResolver = async () => {
 export const createGroupResolver = async (group: CreateGroup) => {    
     
     if (!group.name || !group.isOpen) {
-        throw Error("There are missing compulsory fields in the groups mutation");
+        console.error("There are missing compulsory fields in the groups mutation");
+        return;
     }
     
     const formData = new FormData();
@@ -106,14 +108,14 @@ export const createGroupResolver = async (group: CreateGroup) => {
     let imageBlob: undefined | Blob = undefined;
     
     if(group.profilePic) {
-        imageBuffer = Buffer.from(group.profilePic.data);
+        imageBuffer = Buffer.from(group.profilePic.data, "base64");
         imageBlob = new Blob([imageBuffer], { type: 'image/jpeg' });
         formData.append('profilePic', imageBlob, `${group.name}.jpg`);         
     }
 
     formData.append('isOpen', String(group.isOpen));        
 
-    const response = await fetchAPI<GroupFromAPI[]>({
+    const response = await fetchAPI<GroupFromAPI>({
         url: `${URLS.GROUPS_API}/groups`,
         responseType: URL_TYPES.JSON,
         method: "POST",
@@ -126,6 +128,15 @@ export const createGroupResolver = async (group: CreateGroup) => {
         return;
     }
 
-    return response.responseBody.data;
+    const data = response.responseBody.data; 
+    return {
+        id: data.id,
+        name: data.name,
+        description: data.description,        
+        isVerified: data.isVerified,
+        isOpen: data.isOpen,
+        createdAt: new Date(data.createdAt),
+        updatedAt: new Date(data.updatedAt),
+    };    
 
 }

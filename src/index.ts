@@ -48,11 +48,10 @@ const typeDefs = `#graphql
       updatedAt: Date!
     }
 
-    type GroupWithImageURL {
+    type GroupWithoutImage {
       id: ID!
       name: String! 
-      description: String
-      profilePicUrl: String
+      description: String      
       isVerified: Boolean!
       isOpen: Boolean!
       createdAt: Date!
@@ -73,7 +72,7 @@ const typeDefs = `#graphql
 
     type Mutation {
       createTodo(input: NewTodo!): Todo!
-      createGroup(input: NewGroup!): GroupWithImageURL!
+      createGroup(input: NewGroup!): GroupWithoutImage!
     }    
 `;
 
