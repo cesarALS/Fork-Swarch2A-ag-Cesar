@@ -3,16 +3,15 @@
  */
 
 import { UUID } from "node:crypto";
+import { Buffer } from "node:buffer";
 import { fetchAPI, URL_TYPES, URLS } from "../fetchAPIs.js";
+import { Image } from "../types.js";
 
 interface Group {
     id: UUID
     name: string 
     description: string
-    profilePic: {
-        data: string
-        mimeType: string
-    }
+    profilePic: Image
     isVerified: boolean
     isOpen: boolean
     createdAt: Date
@@ -29,15 +28,23 @@ interface GroupFromAPI {
     updatedAt: string  
 }
 
+export interface CreateGroup {
+    name: string,
+    description?: string,
+    profilePic?: Image,
+    isOpen: boolean
+}
+
 const getImage = async (url: string) => {
-    const response = await fetchAPI(url, URL_TYPES.JPEG)
+    const response = await fetchAPI({url, responseType: URL_TYPES.JPEG})
     if(response.status !== 200) {
         console.error(`Could not fetch the API, ${response.status}`);
         return;
     }
-    else if (response.err) return;    
-    const body = response.body as Buffer;
-    return body.toString('base64');
+    else if (response.err) return;
+
+    const body = response.responseBody as Buffer;    
+    return body.toString('base64');    
 }
 
 /**
@@ -46,21 +53,15 @@ const getImage = async (url: string) => {
  */
 export const groupsResolver = async () => {    
     
-    const response = await fetchAPI(`${URLS.GROUPS_API}/groups`)
+    const response = await fetchAPI<GroupFromAPI[]>({url: `${URLS.GROUPS_API}/groups`})
     if (response.err) return;
-
-    // TODO: include the actual error returned by the server
-    if(response.status !== 200) {
-        console.error("Could not fetch the API, ", response.status)
+    
+    if(response.status !== 200) {        
+        console.error(`API reports an error: ${response.responseBody.error}\nStatus: ${response.status}`);
         return;
     }    
     
-    const body = response.body as {
-        data: GroupFromAPI[]
-        success: string
-    };
-    
-    const groups = body.data;
+    const groups = response.responseBody.data;        
                      
     const processedResponse: Group[] = await Promise.all(
         groups.map(async (grp) => {
@@ -70,7 +71,7 @@ export const groupsResolver = async () => {
             description: grp.description,
             profilePic: {
                 data: await getImage(grp.profilePicUrl),
-                mimeType: "jpeg",
+                mimeType: "jpeg", // TODO: support PNG and WebP formats
             },
             isVerified: grp.isVerified,
             isOpen: grp.isOpen,
@@ -83,3 +84,59 @@ export const groupsResolver = async () => {
     // console.log(processedResponse)
     return processedResponse;
 } 
+
+/**
+ * Resolver for create groups mutation type
+ * @returns 
+ */
+export const createGroupResolver = async (group: CreateGroup) => {    
+    
+    if (!group.name || !group.isOpen) {
+        console.error("There are missing compulsory fields in the groups mutation");
+        return;
+    }
+    
+    const formData = new FormData();
+
+    formData.append('name', group.name);
+
+    if(group.description) {
+        formData.append('description', group.description);
+    }
+
+    let imageBuffer: undefined | Buffer = undefined;
+    let imageBlob: undefined | Blob = undefined;
+    
+    if(group.profilePic) {
+        imageBuffer = Buffer.from(group.profilePic.data, "base64");
+        imageBlob = new Blob([imageBuffer], { type: 'image/jpeg' });
+        formData.append('profilePic', imageBlob, `${group.name}.jpg`);         
+    }
+
+    formData.append('isOpen', String(group.isOpen));        
+
+    const response = await fetchAPI<GroupFromAPI>({
+        url: `${URLS.GROUPS_API}/groups`,
+        responseType: URL_TYPES.JSON,
+        method: "POST",
+        headers: new Headers(),
+        body: formData,
+    });
+    
+    if(response.status !== 200) {        
+        console.error(`Could not fetch the API: ${response.responseBody.error}`);
+        return;
+    }
+
+    const data = response.responseBody.data; 
+    return {
+        id: data.id,
+        name: data.name,
+        description: data.description,        
+        isVerified: data.isVerified,
+        isOpen: data.isOpen,
+        createdAt: new Date(data.createdAt),
+        updatedAt: new Date(data.updatedAt),
+    };    
+
+}
