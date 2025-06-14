@@ -1,6 +1,6 @@
 import { UUID, randomUUID } from "node:crypto"
 
-interface User {
+interface TodoUser {
   id: UUID,
   name: string
 }
@@ -12,9 +12,9 @@ interface Todo {
   user: UUID
 }
 
-export { User, Todo }
+export { TodoUser, Todo }
 
-const users: User[] = [
+const users: TodoUser[] = [
   {
     id: randomUUID(),
     name: "Heromil",
