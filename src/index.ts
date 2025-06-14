@@ -27,10 +27,10 @@ const typeDefs = `#graphql
       id: ID!
       text: String!
       done: Boolean!
-      user: User!
+      user: TodoUser!
     }
 
-    type User {
+    type TodoUser {
       id: ID!
       name: String!
     }
