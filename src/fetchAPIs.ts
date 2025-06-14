@@ -19,6 +19,7 @@ type BodyType <T> = {
     data?: T,
     status?: string,
     error?: string,
+    errors?: string[]
 }
 
 type Body = string | Blob | ArrayBuffer | FormData | URLSearchParams | ReadableStream | null | undefined;
