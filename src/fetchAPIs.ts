@@ -6,7 +6,8 @@
  * The URLS needed to fetch the microservices
  */
 export const URLS = {
-    GROUPS_API: process.env.GROUPS_API ?? "http://mu_groups_ms:8008/api"
+    GROUPS_API: process.env.GROUPS_API ?? "http://mu_groups_ms:8008/api",
+    AUTH_API: process.env.AUTH_API ?? "http://mu_auth_ms:5000"
 }
 
 export enum URL_TYPES {
