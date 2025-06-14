@@ -3,6 +3,7 @@ import { startStandaloneServer } from '@apollo/server/standalone';
 import { todosResolver, createTodo } from './resolvers/todoResolvers.js';
 import { CreateGroup, createGroupResolver, groupsResolver } from './resolvers/groupsResolvers.js';
 import { dateScalar } from './customScalars.js';
+import { signUp, SignUp } from './resolvers/authResolvers.js';
 
 // Here, we define our graphql schema
 const typeDefs = `#graphql
@@ -10,6 +11,17 @@ const typeDefs = `#graphql
   
     scalar Date  
 
+    input SignUp {
+      email: String!
+      password: String!
+    }
+
+    type User {
+      email: String!
+      username: String!
+      isSuperUser: Boolean!
+    }
+    
     type Todo {
       id: ID!
       text: String!
@@ -71,9 +83,10 @@ const typeDefs = `#graphql
     }
 
     type Mutation {
+      signUp(input: SignUp!): User!
       createTodo(input: NewTodo!): Todo!
       createGroup(input: NewGroup!): GroupWithoutImage!
-    }    
+    }
 `;
 
 /**
@@ -86,6 +99,9 @@ const resolvers = {
     groups: async() => groupsResolver()
   },
   Mutation: {
+    signUp:       async (_: any, { input }: { input: SignUp }, ) => {
+      return await signUp(input)
+    },
     createTodo:   (_: any, { input }: { input: { text: string, name: string } }) => {
       return createTodo(input.text, input.name); 
     },
