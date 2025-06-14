@@ -1,9 +1,10 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
+import { IncomingMessage, ServerResponse } from 'node:http';
+import { signUp, SignUp } from './resolvers/authResolvers.js';
 import { todosResolver, createTodo } from './resolvers/todoResolvers.js';
 import { CreateGroup, createGroupResolver, groupsResolver } from './resolvers/groupsResolvers.js';
 import { dateScalar } from './customScalars.js';
-import { signUp, SignUp } from './resolvers/authResolvers.js';
 
 // Here, we define our graphql schema
 const typeDefs = `#graphql
@@ -90,6 +91,14 @@ const typeDefs = `#graphql
 `;
 
 /**
+ * This is our Context Interface. Contexts will be used by various resolvers
+ */
+interface Context {
+  req: IncomingMessage;
+  res: ServerResponse; 
+}
+
+/**
  * We should put all of our resolvers in this object:
  */
 const resolvers = {
@@ -111,13 +120,14 @@ const resolvers = {
   },
 };
 
-const server = new ApolloServer({
+const server = new ApolloServer<Context>({
   typeDefs,
-  resolvers,
+  resolvers,  
 });
 
 const { url } = await startStandaloneServer(server, {
   listen: { port: 4000 }, // TODO: usar una variable de entorno
+  context: async ({req, res}) => ({ req, res }),
 });
 
 console.log(`🚀 Server ready at: ${url}`);
