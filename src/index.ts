@@ -93,7 +93,7 @@ const typeDefs = `#graphql
 /**
  * This is our Context Interface. Contexts will be used by various resolvers
  */
-interface Context {
+export interface Context {
   req: IncomingMessage;
   res: ServerResponse; 
 }
@@ -108,8 +108,8 @@ const resolvers = {
     groups: async() => groupsResolver()
   },
   Mutation: {
-    signUp:       async (_: any, { input }: { input: SignUp }, ) => {
-      return await signUp(input)
+    signUp:       async (_: any, { input }: { input: SignUp }, context: Context) => {
+      return await signUp(input, context)
     },
     createTodo:   (_: any, { input }: { input: { text: string, name: string } }) => {
       return createTodo(input.text, input.name); 
@@ -122,7 +122,7 @@ const resolvers = {
 
 const server = new ApolloServer<Context>({
   typeDefs,
-  resolvers,  
+  resolvers,
 });
 
 const { url } = await startStandaloneServer(server, {
