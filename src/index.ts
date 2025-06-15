@@ -1,7 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { IncomingMessage, ServerResponse } from 'node:http';
-import { signUp, SignUp } from './resolvers/authResolvers.js';
+import { login, Login, signUp, SignUp } from './resolvers/authResolvers.js';
 import { todosResolver, createTodo } from './resolvers/todoResolvers.js';
 import { CreateGroup, createGroupResolver, groupsResolver } from './resolvers/groupsResolvers.js';
 import { dateScalar } from './customScalars.js';
@@ -13,6 +13,11 @@ const typeDefs = `#graphql
     scalar Date  
 
     input SignUp {
+      email: String!
+      password: String!
+    }
+
+    input Login {
       email: String!
       password: String!
     }
@@ -85,6 +90,7 @@ const typeDefs = `#graphql
 
     type Mutation {
       signUp(input: SignUp!): User!
+      login(input: Login!): User!
       createTodo(input: NewTodo!): Todo!
       createGroup(input: NewGroup!): GroupWithoutImage!
     }
@@ -110,6 +116,9 @@ const resolvers = {
   Mutation: {
     signUp:       async (_: any, { input }: { input: SignUp }, context: Context) => {
       return await signUp(input, context)
+    },
+    login:        async (_: any, { input }: { input: Login}, context: Context ) => {
+      return await login(input, context);
     },
     createTodo:   (_: any, { input }: { input: { text: string, name: string } }) => {
       return createTodo(input.text, input.name); 
