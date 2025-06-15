@@ -5,6 +5,7 @@ import { authme, login, Login, logout, signUp, SignUp } from './resolvers/authRe
 import { todosResolver, createTodo } from './resolvers/todoResolvers.js';
 import { CreateGroup, createGroupResolver, groupsResolver } from './resolvers/groupsResolvers.js';
 import { dateScalar } from './customScalars.js';
+import { ErrorCodes } from './errorHandling.js';
 
 // Here, we define our graphql schema
 const typeDefs = `#graphql
@@ -139,6 +140,16 @@ const resolvers = {
 const server = new ApolloServer<Context>({
   typeDefs,
   resolvers,
+  formatError: (error) => {
+    return {
+      message: error.message,
+      path: error.path,
+      extensions: {
+        code: error.extensions?.code || ErrorCodes.INTERNAL_SERVER_ERROR,
+        serviceErrors: error.extensions?.serviceErrors || [],        
+      }
+    }
+  }
 });
 
 const { url } = await startStandaloneServer(server, {
