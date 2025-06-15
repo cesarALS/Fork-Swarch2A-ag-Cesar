@@ -64,7 +64,7 @@ export const signUp = async (data: SignUp, context: Context) => {
 
 /**Login Resolver */
 export const login = async (data: Login, context: Context) => {
-    const response = await fetchAPI <SignUpResponse> ({
+    const response = await fetchAPI <LoginResponse> ({
         url: `${URLS.AUTH_API}/login`,
         responseType: URL_TYPES.JSON,
         method: "POST",
