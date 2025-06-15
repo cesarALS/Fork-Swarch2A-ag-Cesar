@@ -1,7 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { IncomingMessage, ServerResponse } from 'node:http';
-import { login, Login, signUp, SignUp } from './resolvers/authResolvers.js';
+import { authme, login, Login, signUp, SignUp } from './resolvers/authResolvers.js';
 import { todosResolver, createTodo } from './resolvers/todoResolvers.js';
 import { CreateGroup, createGroupResolver, groupsResolver } from './resolvers/groupsResolvers.js';
 import { dateScalar } from './customScalars.js';
@@ -20,7 +20,7 @@ const typeDefs = `#graphql
     input Login {
       email: String!
       password: String!
-    }
+    }    
 
     type User {
       email: String!
@@ -84,6 +84,7 @@ const typeDefs = `#graphql
     }
 
     type Query {
+      authme: User!
       todos: [Todo!]!
       groups: [Group!]!
     }
@@ -110,6 +111,7 @@ export interface Context {
 const resolvers = {
   Date: dateScalar,
   Query: {
+    authme: async (_: any, {}, context: Context) => authme(context),
     todos: () => todosResolver(),
     groups: async() => groupsResolver()
   },
