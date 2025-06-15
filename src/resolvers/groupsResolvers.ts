@@ -6,6 +6,8 @@ import { UUID } from "node:crypto";
 import { Buffer } from "node:buffer";
 import { fetchAPI, URL_TYPES, URLS } from "../fetchAPIs.js";
 import { Image } from "../types.js";
+import { GraphQLError } from "graphql";
+import { ErrorCodes } from "../errorHandling.js";
 
 interface Group {
     id: UUID
@@ -38,10 +40,12 @@ export interface CreateGroup {
 const getImage = async (url: string) => {
     const response = await fetchAPI({url, responseType: URL_TYPES.JPEG})
     if(response.status !== 200) {
-        console.error(`Could not fetch the API, ${response.status}`);
-        return;
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+            }
+        })
     }
-    else if (response.err) return;
 
     const body = response.responseBody as Buffer;    
     return body.toString('base64');    
@@ -53,13 +57,15 @@ const getImage = async (url: string) => {
  */
 export const groupsResolver = async () => {    
     
-    const response = await fetchAPI<GroupFromAPI[]>({url: `${URLS.GROUPS_API}/groups`})
-    if (response.err) return;
+    const response = await fetchAPI<GroupFromAPI[]>({url: `${URLS.GROUPS_API}/groups`})    
     
-    if(response.status !== 200) {        
-        console.error(`API reports an error: ${response.responseBody.error}\nStatus: ${response.status}`);
-        return;
-    }    
+    if(response.status !== 200) {
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+            }
+        })
+    }
     
     const groups = response.responseBody.data;        
                      
@@ -91,6 +97,9 @@ export const groupsResolver = async () => {
  */
 export const createGroupResolver = async (group: CreateGroup) => {    
     
+    
+    // This is really unlikely to happen here, 
+    // as the schema has the automatic validation of compulsory fields
     if (!group.name || !group.isOpen) {
         console.error("There are missing compulsory fields in the groups mutation");
         return;
@@ -123,9 +132,12 @@ export const createGroupResolver = async (group: CreateGroup) => {
         body: formData,
     });
     
-    if(response.status !== 200) {        
-        console.error(`Could not fetch the API: ${response.responseBody.error}`);
-        return;
+    if(response.status !== 200) {
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+            }
+        })
     }
 
     const data = response.responseBody.data; 

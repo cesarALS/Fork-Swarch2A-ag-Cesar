@@ -2,6 +2,7 @@ import { UUID } from "node:crypto";
 import { fetchAPI, URL_TYPES, URLS } from "../fetchAPIs.js";
 import { Context } from "../index.js"
 import { GraphQLError } from "graphql";
+import { ErrorCodes } from "../errorHandling.js";
 
 interface User {
     id: UUID
@@ -65,14 +66,15 @@ export const signUp = async (data: SignUp, context: Context): Promise<User> => {
             "Content-Type": "application/json"
         }),
         body: JSON.stringify(data)
-    });
-
-    if(response.err) return;
+    });    
 
     if(response.status !== 201) {
-        console.log("Error calling the API:");
-        console.error(response.responseBody.errors);
-        return;
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+                serviceErrors: response.responseBody.errors,
+            }
+        });
     }
 
     const signUpResponse = response.responseBody.data;
@@ -97,14 +99,15 @@ export const login = async (data: Login, context: Context): Promise<User> => {
             "Content-Type": "application/json"
         }),
         body: JSON.stringify(data)
-    });
-
-    if(response.err) return;
+    });    
 
     if(response.status !== 200) {
-        console.log("Error calling the API:");
-        console.error(response.responseBody.errors);
-        return;
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+                serviceErrors: response.responseBody.errors,
+            }
+        });
     }
 
     const loginResponse = response.responseBody.data;
@@ -127,7 +130,6 @@ export const authme = async (context: Context): Promise<User> => {
         throw new GraphQLError('Token no encontrado', {
             extensions: {
                 code: 'TOKEN_NOT_FOUND',
-                http: { status: 401 }
             }
         });
     }
@@ -142,14 +144,19 @@ export const authme = async (context: Context): Promise<User> => {
         body: null
     });
 
-    if (response.status !== 200) {
-        throw new GraphQLError('Token Inválido', {
+    if (response.status === 401) {
+        throw new GraphQLError(ErrorCodes.INVALID_AUTH_TOKEN, {
             extensions: {
-                code: 'INVALID_TOKEN',
-                http: { status: 401 }
+                code: ErrorCodes.INVALID_AUTH_TOKEN,
             }                
         })
-    };
+    } else if (response.status !== 200) {
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR), {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+            }
+        }
+    }
 
     const data = response.responseBody.data;
 
@@ -170,7 +177,6 @@ export const logout = async (context: Context): Promise<Boolean> => {
         throw new GraphQLError('Token no encontrado', {
             extensions: {
                 code: 'TOKEN_NOT_FOUND',
-                http: { status: 401 }
             }
         });
     };  
@@ -186,17 +192,15 @@ export const logout = async (context: Context): Promise<Boolean> => {
     });
 
     if (response.status === 401) {
-        throw new GraphQLError('Token Inválido', {
+        throw new GraphQLError(ErrorCodes.INVALID_AUTH_TOKEN, {
             extensions: {
-                code: 'INVALID_TOKEN',
-                http: { status: 401 }
+                code: ErrorCodes.INVALID_AUTH_TOKEN,
             }                
         })
     } else if (response.status !== 204) {
-        throw new GraphQLError('Internal Server Error'), {
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR), {
             extensions: {
-                code: 'INTERNAL_SERVER_ERROR',
-                http: { status: 500 }
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
             }
         }
     }

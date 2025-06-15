@@ -2,9 +2,13 @@
  * This file handles the generic logic to fetch the APIs 
  */
 
+import { GraphQLError } from "graphql";
+import { ErrorCodes } from "./errorHandling.js"
+
 /**
  * The URLS needed to fetch the microservices
  */
+
 export const URLS = {
     GROUPS_API: process.env.GROUPS_API ?? "http://mu_groups_ms:8008/api",
     AUTH_API: process.env.AUTH_API ?? "http://mu_auth_ms:5000"
@@ -72,20 +76,24 @@ export const fetchAPI = async <ExpectedType>(
 
         return {
             status,
-            responseBody: responseBody as BodyType<ExpectedType>,
-            err: false
+            responseBody: responseBody as BodyType<ExpectedType>,            
         }
         
     } catch (err) {
         
         let errorString = `error calling the url ${url}:`                
         errorString = (err instanceof Error) ? `${errorString} ${err.name}; \n ${err.message}` : `${errorString} ${err}`        
-        console.error(errorString)
+        console.error(errorString);
+
+        /**
+         * We want to print the error to gateway console, but we do not want to disclose it to the GraphQL API Consumer,
+         * for security purposes.
+         */        
+        throw new GraphQLError(ErrorCodes.INTERNAL_SERVER_ERROR, {
+            extensions: {
+                code: ErrorCodes.INTERNAL_SERVER_ERROR,                
+            }
+        });
         
-        return {
-            status: undefined,
-            responseBody: undefined,
-            err: true
-        }
     }
 }
