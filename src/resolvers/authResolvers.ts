@@ -51,7 +51,7 @@ export const signUp = async (data: SignUp, context: Context) => {
         return;
     }
 
-    const signUpResponse = response.responseBody.data as SignUpResponse;
+    const signUpResponse = response.responseBody.data;
 
     setCookies(context, signUpResponse.jwt);
 
@@ -82,7 +82,7 @@ export const login = async (data: Login, context: Context) => {
         return;
     }
 
-    const loginResponse = response.responseBody.data as LoginResponse;
+    const loginResponse = response.responseBody.data;
 
     setCookies(context, loginResponse.jwt);
 
