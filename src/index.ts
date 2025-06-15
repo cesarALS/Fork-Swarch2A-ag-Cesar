@@ -1,5 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
+import { IncomingMessage, ServerResponse } from 'node:http';
+import { authme, login, Login, logout, signUp, SignUp } from './resolvers/authResolvers.js';
 import { todosResolver, createTodo } from './resolvers/todoResolvers.js';
 import { CreateGroup, createGroupResolver, groupsResolver } from './resolvers/groupsResolvers.js';
 import { dateScalar } from './customScalars.js';
@@ -10,14 +12,31 @@ const typeDefs = `#graphql
   
     scalar Date  
 
+    input SignUp {
+      email: String!
+      password: String!
+    }
+
+    input Login {
+      email: String!
+      password: String!
+    }    
+
+    type User {
+      id: ID!
+      email: String!
+      username: String!
+      isSuperUser: Boolean!
+    }
+    
     type Todo {
       id: ID!
       text: String!
       done: Boolean!
-      user: User!
+      user: TodoUser!
     }
 
-    type User {
+    type TodoUser {
       id: ID!
       name: String!
     }
@@ -66,15 +85,27 @@ const typeDefs = `#graphql
     }
 
     type Query {
+      authme: User!
       todos: [Todo!]!
       groups: [Group!]!
     }
 
     type Mutation {
+      signUp(input: SignUp!): User!
+      login(input: Login!): User!
+      logout: Boolean!
       createTodo(input: NewTodo!): Todo!
       createGroup(input: NewGroup!): GroupWithoutImage!
-    }    
+    }
 `;
+
+/**
+ * This is our Context Interface. Contexts will be used by various resolvers
+ */
+export interface Context {
+  req: IncomingMessage;
+  res: ServerResponse; 
+}
 
 /**
  * We should put all of our resolvers in this object:
@@ -82,10 +113,20 @@ const typeDefs = `#graphql
 const resolvers = {
   Date: dateScalar,
   Query: {
+    authme: async (_: any, {}, context: Context) => authme(context),
     todos: () => todosResolver(),
     groups: async() => groupsResolver()
   },
   Mutation: {
+    signUp:       async (_: any, { input }: { input: SignUp }, context: Context) => {
+      return await signUp(input, context)
+    },
+    login:        async (_: any, { input }: { input: Login}, context: Context ) => {
+      return await login(input, context);
+    },
+    logout:       async (_: any, {}, context: Context) => {
+      return await logout(context);
+    },
     createTodo:   (_: any, { input }: { input: { text: string, name: string } }) => {
       return createTodo(input.text, input.name); 
     },
@@ -95,13 +136,14 @@ const resolvers = {
   },
 };
 
-const server = new ApolloServer({
+const server = new ApolloServer<Context>({
   typeDefs,
   resolvers,
 });
 
 const { url } = await startStandaloneServer(server, {
   listen: { port: 4000 }, // TODO: usar una variable de entorno
+  context: async ({req, res}) => ({ req, res }),
 });
 
 console.log(`🚀 Server ready at: ${url}`);

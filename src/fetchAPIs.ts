@@ -6,18 +6,21 @@
  * The URLS needed to fetch the microservices
  */
 export const URLS = {
-    GROUPS_API: process.env.GROUPS_API ?? "http://mu_groups_ms:8008/api"
+    GROUPS_API: process.env.GROUPS_API ?? "http://mu_groups_ms:8008/api",
+    AUTH_API: process.env.AUTH_API ?? "http://mu_auth_ms:5000"
 }
 
 export enum URL_TYPES {
     JSON = "json",
-    JPEG = "jpeg"
+    JPEG = "jpeg",
+    NONE = "none",
 }
 
 type BodyType <T> = {
     data?: T,
     status?: string,
     error?: string,
+    errors?: string[]
 }
 
 type Body = string | Blob | ArrayBuffer | FormData | URLSearchParams | ReadableStream | null | undefined;
@@ -58,6 +61,9 @@ export const fetchAPI = async <ExpectedType>(
             case (URL_TYPES.JPEG):
                 const arrayBuf = await response.arrayBuffer();
                 responseBody = Buffer.from(arrayBuf);
+                break;
+            case (URL_TYPES.NONE):
+                responseBody = null;
                 break;
             default:
                 responseBody = await response.json();

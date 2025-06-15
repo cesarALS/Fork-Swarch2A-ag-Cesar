@@ -15,6 +15,7 @@ services:
   
   environment:
     GROUPS_API: http://${mu_groups_ms_HOSTNAME:-mu_groups_ms}:${mu_groups_ms_EXPOSED_PORT:-8008}/api
+    AUTH_API: http://${mu_auth_ms_HOSTNAME:-mu_auth_ms}:${mu_auth_ms_INTERNAL_PORT:-5000}
 
  
 include:
