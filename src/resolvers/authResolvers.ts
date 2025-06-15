@@ -3,6 +3,13 @@ import { fetchAPI, URL_TYPES, URLS } from "../fetchAPIs.js";
 import { Context } from "../index.js"
 import { GraphQLError } from "graphql";
 
+interface User {
+    id: UUID
+    email: string
+    username: string
+    isSuperUser: boolean
+}
+
 export interface SignUp {
     email: string
     password: string
@@ -40,7 +47,7 @@ const setCookies = (context: Context, jwt: string) => {
 
 const getJWTHeader = (context: Context): string | undefined => {        
 
-    let token: string = undefined
+    let token: string = undefined    
     
     token = context.req.headers.cookie?.split(' ')[1] ?? undefined;
     if(!token) token = context.req.headers.authorization?.split(' ')[1] ?? undefined;
@@ -49,7 +56,7 @@ const getJWTHeader = (context: Context): string | undefined => {
 };
 
 /** Sign Up Resolver */
-export const signUp = async (data: SignUp, context: Context) => {
+export const signUp = async (data: SignUp, context: Context): Promise<User> => {
     const response = await fetchAPI <SignUpResponse> ({
         url: `${URLS.AUTH_API}/signup`,
         responseType: URL_TYPES.JSON,
@@ -73,6 +80,7 @@ export const signUp = async (data: SignUp, context: Context) => {
     setCookies(context, signUpResponse.jwt);
 
     return {
+        id: signUpResponse.id,
         email: data.email,
         username: "Temp Username", // TODO: Call the users ms to resolve this field
         isSuperUser: false,
@@ -80,7 +88,7 @@ export const signUp = async (data: SignUp, context: Context) => {
 };
 
 /**Login Resolver */
-export const login = async (data: Login, context: Context) => {
+export const login = async (data: Login, context: Context): Promise<User> => {
     const response = await fetchAPI <LoginResponse> ({
         url: `${URLS.AUTH_API}/login`,
         responseType: URL_TYPES.JSON,
@@ -104,6 +112,7 @@ export const login = async (data: Login, context: Context) => {
     setCookies(context, loginResponse.jwt);
 
     return {
+        id: loginResponse.id,
         email: data.email,
         username: "Temp Username", // TODO: Call the users ms to resolve this field
         isSuperUser: false,
@@ -112,7 +121,7 @@ export const login = async (data: Login, context: Context) => {
 };
 
 /** AuthMe Resolver */
-export const authme = async (context: Context) => {
+export const authme = async (context: Context): Promise<User> => {
     const token = getJWTHeader(context);
     if(!token) {
         throw new GraphQLError('Token no encontrado', {
@@ -145,6 +154,7 @@ export const authme = async (context: Context) => {
     const data = response.responseBody.data;
 
     return {
+        id: data.id,
         email: data.email,
         username: "Temp Username", // TODO: Call the users ms to resolve this field
         isSuperUser: false,
