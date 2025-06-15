@@ -41,6 +41,11 @@ export const signUp = async (data: SignUp, context: Context) => {
         `${AUTH_TOKEN}=${signUpResponse.jwt}; HttpOnly; Secure; Max-Age=3600`
     );
 
+    context.res.setHeader(
+        "Authorization",
+        `Bearer ${signUpResponse.jwt}`
+    )
+
     return {
         email: data.email,
         username: "Temp Username", // TODO: Call the users ms to resolve this field
