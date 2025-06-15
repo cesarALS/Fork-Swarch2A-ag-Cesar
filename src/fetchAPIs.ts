@@ -12,7 +12,8 @@ export const URLS = {
 
 export enum URL_TYPES {
     JSON = "json",
-    JPEG = "jpeg"
+    JPEG = "jpeg",
+    NONE = "none",
 }
 
 type BodyType <T> = {
@@ -60,6 +61,9 @@ export const fetchAPI = async <ExpectedType>(
             case (URL_TYPES.JPEG):
                 const arrayBuf = await response.arrayBuffer();
                 responseBody = Buffer.from(arrayBuf);
+                break;
+            case (URL_TYPES.NONE):
+                responseBody = null;
                 break;
             default:
                 responseBody = await response.json();
