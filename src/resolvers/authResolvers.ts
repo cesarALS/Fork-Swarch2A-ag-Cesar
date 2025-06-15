@@ -161,3 +161,45 @@ export const authme = async (context: Context): Promise<User> => {
     };
     
 };
+
+/** Logout Controller */
+export const logout = async (context: Context): Promise<Boolean> => {
+    
+    const token = getJWTHeader(context);
+    if(!token) {
+        throw new GraphQLError('Token no encontrado', {
+            extensions: {
+                code: 'TOKEN_NOT_FOUND',
+                http: { status: 401 }
+            }
+        });
+    };  
+
+    const response = await fetchAPI<null>({
+        url: `${URLS.AUTH_API}/logout`,
+        responseType: URL_TYPES.NONE,
+        method: "POST",
+        headers: new Headers({
+            "Authorization": `Bearer ${token}`
+        }),
+        body: null
+    });
+
+    if (response.status === 401) {
+        throw new GraphQLError('Token Inválido', {
+            extensions: {
+                code: 'INVALID_TOKEN',
+                http: { status: 401 }
+            }                
+        })
+    } else if (response.status !== 204) {
+        throw new GraphQLError('Internal Server Error'), {
+            extensions: {
+                code: 'INTERNAL_SERVER_ERROR',
+                http: { status: 500 }
+            }
+        }
+    }
+
+    return true;
+};

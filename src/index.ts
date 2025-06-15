@@ -1,7 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { IncomingMessage, ServerResponse } from 'node:http';
-import { authme, login, Login, signUp, SignUp } from './resolvers/authResolvers.js';
+import { authme, login, Login, logout, signUp, SignUp } from './resolvers/authResolvers.js';
 import { todosResolver, createTodo } from './resolvers/todoResolvers.js';
 import { CreateGroup, createGroupResolver, groupsResolver } from './resolvers/groupsResolvers.js';
 import { dateScalar } from './customScalars.js';
@@ -93,6 +93,7 @@ const typeDefs = `#graphql
     type Mutation {
       signUp(input: SignUp!): User!
       login(input: Login!): User!
+      logout: Boolean!
       createTodo(input: NewTodo!): Todo!
       createGroup(input: NewGroup!): GroupWithoutImage!
     }
@@ -122,6 +123,9 @@ const resolvers = {
     },
     login:        async (_: any, { input }: { input: Login}, context: Context ) => {
       return await login(input, context);
+    },
+    logout:       async (_: any, {}, context: Context) => {
+      return await logout(context);
     },
     createTodo:   (_: any, { input }: { input: { text: string, name: string } }) => {
       return createTodo(input.text, input.name); 
