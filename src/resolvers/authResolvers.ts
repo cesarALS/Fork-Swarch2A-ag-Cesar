@@ -1,5 +1,5 @@
 import { UUID } from "node:crypto";
-import { fetchAPI, URL_TYPES, URLS } from "../fetchAPIs.js";
+import { fetchMS, URL_TYPES, URLS } from "../fetchMicroservices.js";
 import { Context } from "../index.js"
 import { GraphQLError } from "graphql";
 import { ErrorCodes } from "../errorHandling.js";
@@ -58,14 +58,14 @@ const getJWTHeader = (context: Context): string | undefined => {
 
 /** Sign Up Resolver */
 export const signUp = async (data: SignUp, context: Context): Promise<User> => {
-    const response = await fetchAPI <SignUpResponse> ({
-        url: `${URLS.AUTH_API}/signup`,
+    const response = await fetchMS<SignUpResponse>({
+        url: `${URLS.AUTH_MS}/signup`,
         responseType: URL_TYPES.JSON,
         method: "POST",
         headers: new Headers({
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }),
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
     });    
 
     if(response.status !== 201) {
@@ -91,14 +91,14 @@ export const signUp = async (data: SignUp, context: Context): Promise<User> => {
 
 /**Login Resolver */
 export const login = async (data: Login, context: Context): Promise<User> => {
-    const response = await fetchAPI <LoginResponse> ({
-        url: `${URLS.AUTH_API}/login`,
+    const response = await fetchMS<LoginResponse>({
+        url: `${URLS.AUTH_MS}/login`,
         responseType: URL_TYPES.JSON,
         method: "POST",
         headers: new Headers({
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }),
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
     });    
 
     if(response.status !== 200) {
@@ -134,14 +134,14 @@ export const authme = async (context: Context): Promise<User> => {
         });
     }
             
-    const response = await fetchAPI <AuthMeResponse> ({
-        url: `${URLS.AUTH_API}/auth/me`,
+    const response = await fetchMS<AuthMeResponse>({
+        url: `${URLS.AUTH_MS}/auth/me`,
         responseType: URL_TYPES.JSON,
         method: "GET",
         headers: new Headers({
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
         }),
-        body: null
+        body: null,
     });
 
     if (response.status === 401) {
@@ -181,14 +181,14 @@ export const logout = async (context: Context): Promise<Boolean> => {
         });
     };  
 
-    const response = await fetchAPI<null>({
-        url: `${URLS.AUTH_API}/logout`,
+    const response = await fetchMS<null>({
+        url: `${URLS.AUTH_MS}/logout`,
         responseType: URL_TYPES.NONE,
         method: "POST",
         headers: new Headers({
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
         }),
-        body: null
+        body: null,
     });
 
     if (response.status === 401) {
