@@ -16,6 +16,7 @@ services:
   environment:
     GROUPS_MS: http://${mu_groups_ms_HOSTNAME:-mu_groups_ms}:${mu_groups_ms_EXPOSED_PORT:-8008}/api
     AUTH_MS: http://${mu_auth_ms_HOSTNAME:-mu_auth_ms}:${mu_auth_ms_INTERNAL_PORT:-5000}
+    BULK_MS: http://${mu_bulk_ms_HOSTNAME:-mu_bulk_ms}:${mu_bulk_ms_INTERNAL_PORT:-8080}/api
 
 
 include:
@@ -26,3 +27,7 @@ include:
   # Auth MS
   - path: auth/docker-compose.yml
     project_directory: auth/
+
+  # Bulk MS
+  - path: bulk_ms/docker-compose.yml
+    project_directory: bulk_ms/

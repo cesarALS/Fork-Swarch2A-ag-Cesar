@@ -96,10 +96,48 @@ const typeDefs = `#graphql
       isOpen: Boolean!
     }
 
+    type BulkMessage {
+      es: String!
+      en: String!
+    }
+
+    interface ExampleModel {
+      id: ID!
+      name: String!
+    }
+
+    type Company implements ExampleModel {
+      id: ID!
+      name: String!
+    }
+
+    type Person implements ExampleModel {
+      id: ID!
+      name: String!
+    }
+
+
+    type CompaniesResult {
+      task_id: ID!
+      message: BulkMessage!
+      result: [Company!] # It can be null when it hasn't been processed
+    }
+
+    type PeopleResult {
+      task_id: ID!
+      message: BulkMessage!
+      result: [Person!] # It can be null when it hasn't been processed
+    }
+
+
     type Query {
       authme: User!
       todos: [Todo!]!
       groups: [Group!]!
+
+      # Bulk Example
+      exampleCompanies(id: ID!): CompaniesResult!
+      examplePeople(id: ID!): PeopleResult!
     }
 
     type Mutation {
@@ -108,6 +146,10 @@ const typeDefs = `#graphql
       logout: Boolean!
       createTodo(input: NewTodo!): Todo!
       createGroup(input: NewGroup!): GroupWithoutImage!
+
+      # Bulk Example
+      generateCompanies: CompaniesResult!
+      generatePeople: PeopleResult!
     }
 `;
 
