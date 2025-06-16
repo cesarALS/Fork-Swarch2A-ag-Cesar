@@ -44,6 +44,7 @@ interface FetchMSParams {
     method?: "GET" | "POST" | "PUT" | "DELETE"; // The method (POST, PUT, GET, DELETE, etc.)
     headers?: Headers; // The headers provided
     body?: Body; //The body of the request
+    wrapInData?: boolean; // If the API does not give its information like data, errors, etc., wrap the response in the data field
 }
 
 /**
@@ -51,7 +52,7 @@ interface FetchMSParams {
  * @returns The API response already processed
  */
 export const fetchMS = async <ExpectedType>(params: FetchMSParams) => {
-    const { url, responseType, method, headers, body } = params;
+    const { url, responseType, method, headers, body, wrapInData } = params;
 
     try {
         const response = await fetch(url, {
@@ -81,7 +82,9 @@ export const fetchMS = async <ExpectedType>(params: FetchMSParams) => {
 
         return {
             status,
-            responseBody: responseBody as BodyType<ExpectedType>,
+            responseBody: wrapInData
+                ? { data: responseBody as ExpectedType }
+                : (responseBody as BodyType<ExpectedType>),
         };
     } catch (err) {
         let errorString = `error calling the url ${url}:`;
