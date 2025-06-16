@@ -15,6 +15,12 @@ import {
     createGroupResolver,
     groupsResolver,
 } from "./resolvers/groupsResolvers.js";
+import {
+    generateCompaniesResolver,
+    generatePeopleResolver,
+    exampleCompaniesResolver,
+    examplePeopleResolver,
+} from "./resolvers/bulkResolver.js";
 import { dateScalar } from "./customScalars.js";
 import { ErrorCodes } from "./errorHandling.js";
 
@@ -170,6 +176,10 @@ const resolvers = {
         authme: async (_: any, {}, context: Context) => authme(context),
         todos: () => todosResolver(),
         groups: async () => groupsResolver(),
+        exampleCompanies: async (_: any, { id }: { id: string }) =>
+            exampleCompaniesResolver(id),
+        examplePeople: async (_: any, { id }: { id: string }) =>
+            examplePeopleResolver(id),
     },
     Mutation: {
         signUp: async (
@@ -198,6 +208,8 @@ const resolvers = {
         createGroup: async (_: any, { input }: { input: CreateGroup }) => {
             return await createGroupResolver(input);
         },
+        generateCompanies: async () => generateCompaniesResolver(),
+        generatePeople: async () => generatePeopleResolver(),
     },
 };
 
