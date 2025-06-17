@@ -23,8 +23,14 @@ interface Person extends ExampleModel {}
 interface BulkResult<T extends ExampleModel> {
     task_id: string;
     message: BulkMessage;
-    result?: T[];
+    result?: {[entity: string]: T[]};
 }
+
+interface BulkResponse<T extends ExampleModel> {
+    task_id: string;
+    message: BulkMessage;
+    result?: T[];
+};
 
 const BULK_MS = URLS.BULK_MS;
 
@@ -47,8 +53,12 @@ export const generatePeopleResolver = async () => {
  */
 export const exampleCompaniesResolver = async (
     id: string,
-): Promise<BulkResult<Company>> => {
-    return getTaskResult<Company>(id);
+): Promise<BulkResponse<Company>> => {
+    const response = await getTaskResult<Company>(id);
+    return {
+        ... response,
+        result: response.result.companies,
+    };
 };
 
 /**
@@ -56,8 +66,12 @@ export const exampleCompaniesResolver = async (
  */
 export const examplePeopleResolver = async (
     id: string,
-): Promise<BulkResult<Person>> => {
-    return getTaskResult<Person>(id);
+): Promise<BulkResponse<Person>> => {
+    const response = await getTaskResult<Person>(id);
+    return {
+        ... response,
+        result: response.result.people,
+    };
 };
 
 async function createExampleTask<C extends Company>(
@@ -112,6 +126,8 @@ async function getTaskResult<T extends ExampleModel>(
             },
         });
     }
+
+    console.dir(response.responseBody.data);
 
     return response.responseBody.data;
 }
