@@ -72,6 +72,7 @@ async function createExampleTask<T extends ExampleModel>(
     const response = await fetchMS<BulkResult<T>>({
         method: "GET",
         url: `${BULK_MS}/examples/${type}/`,
+        wrapInData: true,
     });
 
     if (response.status !== 202) {
@@ -101,6 +102,7 @@ async function getTaskResult<T extends ExampleModel>(
     const response = await fetchMS<BulkResult<T>>({
         method: "GET",
         url,
+        wrapInData: true,
     });
 
     if (response.status !== 200) {
