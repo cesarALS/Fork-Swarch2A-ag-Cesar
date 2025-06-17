@@ -14,9 +14,14 @@ services:
    - ${mu_ag_EXPOSED_PORT:-4000}:4000
 
   environment:
+    # TODO: Shouldn't this use the INTERNAL PORT and not the EXPOSED PORT?
+    # Because they are used by the ag to access the services from within the docker network and not from outside 
     GROUPS_MS: http://${mu_groups_ms_HOSTNAME:-mu_groups_ms}:${mu_groups_ms_EXPOSED_PORT:-8008}/api
     AUTH_MS: http://${mu_auth_ms_HOSTNAME:-mu_auth_ms}:${mu_auth_ms_INTERNAL_PORT:-5000}
     BULK_MS: http://${mu_bulk_ms_HOSTNAME:-mu_bulk_ms}:${mu_bulk_ms_INTERNAL_PORT:-8080}/api
+    USERS_MS: http://${mu_users_ms_HOSTNAME:-mu_users_ms}:${mu_users_ms_INTERNAL_PORT:-8008}
+
+    
 
 
 include:
@@ -31,3 +36,7 @@ include:
   # Bulk MS
   - path: bulk_ms/docker-compose.yml
     project_directory: bulk_ms/
+
+  # Users MS
+  - path: users_ms/docker-compose.yml
+    project_directory: users_ms/
