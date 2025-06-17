@@ -1,79 +1,76 @@
 import { UUID } from "node:crypto";
-import { fetchAPI, URL_TYPES, URLS } from "../fetchAPIs.js";
-import { Context } from "../index.js"
+import { fetchMS, URL_TYPES, URLS } from "../fetchMicroservices.js";
+import { Context } from "../index.js";
 import { GraphQLError } from "graphql";
 import { ErrorCodes } from "../errorHandling.js";
 
 interface User {
-    id: UUID
-    email: string
-    username: string
-    isSuperUser: boolean
+    id: UUID;
+    email: string;
+    username: string;
+    isSuperUser: boolean;
 }
 
 export interface SignUp {
-    email: string
-    password: string
-};
+    email: string;
+    password: string;
+}
 
-export interface Login extends SignUp {};
+export interface Login extends SignUp {}
 
 interface SignUpResponse {
-    id: UUID
-    jwt: string
-};
+    id: UUID;
+    jwt: string;
+}
 
-interface LoginResponse extends SignUpResponse {};
+interface LoginResponse extends SignUpResponse {}
 
 interface AuthMeResponse {
-    id: UUID
-    email: string
-    isSuperUser: boolean
-};
+    id: UUID;
+    email: string;
+    isSuperUser: boolean;
+}
 
 /** This is the name of the token to send to the frontend for the JWT Cookie */
-const AUTH_TOKEN = "token"
+const AUTH_TOKEN = "token";
 
 const setCookies = (context: Context, jwt: string) => {
     context.res.setHeader(
-        "Set-Cookie", 
-        `${AUTH_TOKEN}=${jwt}; HttpOnly; Secure; Max-Age=3600`
+        "Set-Cookie",
+        `${AUTH_TOKEN}=${jwt}; HttpOnly; Secure; Max-Age=3600`,
     );
 
-    context.res.setHeader(
-        "Authorization",
-        `Bearer ${jwt}`
-    );
+    context.res.setHeader("Authorization", `Bearer ${jwt}`);
 };
 
-const getJWTHeader = (context: Context): string | undefined => {        
+const getJWTHeader = (context: Context): string | undefined => {
+    let token: string = undefined;
 
-    let token: string = undefined    
-    
-    token = context.req.headers.cookie?.split(' ')[1] ?? undefined;
-    if(!token) token = context.req.headers.authorization?.split(' ')[1] ?? undefined;
+    token = context.req.headers.cookie?.split(" ")[1] ?? undefined;
+    if (!token)
+        token = context.req.headers.authorization?.split(" ")[1] ?? undefined;
 
     return token;
 };
 
 /** Sign Up Resolver */
 export const signUp = async (data: SignUp, context: Context): Promise<User> => {
-    const response = await fetchAPI <SignUpResponse> ({
-        url: `${URLS.AUTH_API}/signup`,
+    const response = await fetchMS<SignUpResponse>({
+        url: `${URLS.AUTH_MS}/signup`,
         responseType: URL_TYPES.JSON,
         method: "POST",
         headers: new Headers({
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }),
-        body: JSON.stringify(data)
-    });    
+        body: JSON.stringify(data),
+    });
 
-    if(response.status !== 201) {
+    if (response.status !== 201) {
         throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
             extensions: {
                 code: ErrorCodes.GENERIC_CLIENT_ERROR,
                 serviceErrors: response.responseBody.errors,
-            }
+            },
         });
     }
 
@@ -91,22 +88,22 @@ export const signUp = async (data: SignUp, context: Context): Promise<User> => {
 
 /**Login Resolver */
 export const login = async (data: Login, context: Context): Promise<User> => {
-    const response = await fetchAPI <LoginResponse> ({
-        url: `${URLS.AUTH_API}/login`,
+    const response = await fetchMS<LoginResponse>({
+        url: `${URLS.AUTH_MS}/login`,
         responseType: URL_TYPES.JSON,
         method: "POST",
         headers: new Headers({
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }),
-        body: JSON.stringify(data)
-    });    
+        body: JSON.stringify(data),
+    });
 
-    if(response.status !== 200) {
+    if (response.status !== 200) {
         throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
             extensions: {
                 code: ErrorCodes.GENERIC_CLIENT_ERROR,
                 serviceErrors: response.responseBody.errors,
-            }
+            },
         });
     }
 
@@ -119,43 +116,45 @@ export const login = async (data: Login, context: Context): Promise<User> => {
         email: data.email,
         username: "Temp Username", // TODO: Call the users ms to resolve this field
         isSuperUser: false,
-    };    
-
+    };
 };
 
 /** AuthMe Resolver */
 export const authme = async (context: Context): Promise<User> => {
     const token = getJWTHeader(context);
-    if(!token) {
-        throw new GraphQLError('Token no encontrado', {
+    if (!token) {
+        throw new GraphQLError("Token no encontrado", {
             extensions: {
-                code: 'TOKEN_NOT_FOUND',
-            }
+                code: "TOKEN_NOT_FOUND",
+            },
         });
     }
-            
-    const response = await fetchAPI <AuthMeResponse> ({
-        url: `${URLS.AUTH_API}/auth/me`,
+
+    const response = await fetchMS<AuthMeResponse>({
+        url: `${URLS.AUTH_MS}/auth/me`,
         responseType: URL_TYPES.JSON,
         method: "GET",
         headers: new Headers({
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
         }),
-        body: null
+        body: null,
     });
 
     if (response.status === 401) {
         throw new GraphQLError(ErrorCodes.INVALID_AUTH_TOKEN, {
             extensions: {
                 code: ErrorCodes.INVALID_AUTH_TOKEN,
-            }                
-        })
+            },
+        });
     } else if (response.status !== 200) {
-        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR), {
-            extensions: {
-                code: ErrorCodes.GENERIC_CLIENT_ERROR,
-            }
-        }
+        throw (
+            (new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR),
+            {
+                extensions: {
+                    code: ErrorCodes.GENERIC_CLIENT_ERROR,
+                },
+            })
+        );
     }
 
     const data = response.responseBody.data;
@@ -166,43 +165,44 @@ export const authme = async (context: Context): Promise<User> => {
         username: "Temp Username", // TODO: Call the users ms to resolve this field
         isSuperUser: false,
     };
-    
 };
 
 /** Logout Controller */
 export const logout = async (context: Context): Promise<Boolean> => {
-    
     const token = getJWTHeader(context);
-    if(!token) {
-        throw new GraphQLError('Token no encontrado', {
+    if (!token) {
+        throw new GraphQLError("Token no encontrado", {
             extensions: {
-                code: 'TOKEN_NOT_FOUND',
-            }
+                code: "TOKEN_NOT_FOUND",
+            },
         });
-    };  
+    }
 
-    const response = await fetchAPI<null>({
-        url: `${URLS.AUTH_API}/logout`,
+    const response = await fetchMS<null>({
+        url: `${URLS.AUTH_MS}/logout`,
         responseType: URL_TYPES.NONE,
         method: "POST",
         headers: new Headers({
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
         }),
-        body: null
+        body: null,
     });
 
     if (response.status === 401) {
         throw new GraphQLError(ErrorCodes.INVALID_AUTH_TOKEN, {
             extensions: {
                 code: ErrorCodes.INVALID_AUTH_TOKEN,
-            }                
-        })
+            },
+        });
     } else if (response.status !== 204) {
-        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR), {
-            extensions: {
-                code: ErrorCodes.GENERIC_CLIENT_ERROR,
-            }
-        }
+        throw (
+            (new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR),
+            {
+                extensions: {
+                    code: ErrorCodes.GENERIC_CLIENT_ERROR,
+                },
+            })
+        );
     }
 
     return true;

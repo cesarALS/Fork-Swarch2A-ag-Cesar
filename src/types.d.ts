@@ -1,4 +1,4 @@
 export interface Image {
-    data: string
-    mimeType: string
+    data: string;
+    mimeType: string;
 }

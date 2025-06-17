@@ -4,3 +4,6 @@
 [submodule "groups_ms"]
 	path = groups_ms
     url = git@github.com:SwArch-2025-1-2A/groups_ms.git  # Nueva URL
+[submodule "bulk_ms"]
+	path = bulk_ms
+	url = git@github.com:SwArch-2025-1-2A/bulk_ms.git

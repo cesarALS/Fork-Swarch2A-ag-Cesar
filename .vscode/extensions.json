@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "shardulm94.trailing-spaces",
+        "esbenp.prettier-vscode",
+        "rvest.vs-code-prettier-eslint",
+        "gruntfuggly.todo-tree",
+        "pkief.material-icon-theme",
+        "mikestead.dotenv",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "graphql.vscode-graphql",
+        "graphql.vscode-graphql-execution"
+    ]
+}
