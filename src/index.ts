@@ -21,8 +21,12 @@ import {
     exampleCompaniesResolver,
     examplePeopleResolver,
 } from "./resolvers/bulkResolver.js";
+import { 
+  userResolver 
+} from "./resolvers/usersResolver.js";
 import { dateScalar } from "./customScalars.js";
 import { ErrorCodes } from "./errorHandling.js";
+import { UUID } from "node:crypto";
 
 // Here, we define our graphql schema
 const typeDefs = `#graphql
@@ -102,6 +106,12 @@ const typeDefs = `#graphql
       isOpen: Boolean!
     }
 
+    type UserProfile {
+      id: ID!
+      name: String!
+      profilePicUrl: String!
+    }
+
     type BulkMessage {
       es: String!
       en: String!
@@ -140,6 +150,7 @@ const typeDefs = `#graphql
       authme: User!
       todos: [Todo!]!
       groups: [Group!]!
+      user(id: ID!): UserProfile!
 
       # Bulk Example
       exampleCompanies(id: ID!): CompaniesResult!
@@ -176,6 +187,7 @@ const resolvers = {
         authme: async (_: any, {}, context: Context) => authme(context),
         todos: () => todosResolver(),
         groups: async () => groupsResolver(),
+        user: async (_: any, { id }: { id: UUID }) => userResolver(id),
         exampleCompanies: async (_: any, { id }: { id: string }) =>
             exampleCompaniesResolver(id),
         examplePeople: async (_: any, { id }: { id: string }) =>
