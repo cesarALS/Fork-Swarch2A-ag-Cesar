@@ -7,3 +7,6 @@
 [submodule "bulk_ms"]
 	path = bulk_ms
 	url = git@github.com:SwArch-2025-1-2A/bulk_ms.git
+[submodule "users_ms"]
+	path = users_ms
+	url = https://github.com/SwArch-2025-1-2A/users_ms
