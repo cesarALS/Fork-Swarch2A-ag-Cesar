@@ -146,6 +146,14 @@ const typeDefs = `#graphql
     }
 
 
+    type Category {
+      id: ID!
+      category: String!
+      created_at: Date!
+      updated_at: Date!
+    }
+
+
     type Query {
       authme: User!
       todos: [Todo!]!
@@ -155,6 +163,11 @@ const typeDefs = `#graphql
       # Bulk Example
       exampleCompanies(id: ID!): CompaniesResult!
       examplePeople(id: ID!): PeopleResult!
+
+      # Categories Microservice
+      # Can be null because the category might not be found
+      category(id: ID!): Category 
+      categories: [Category!]!
     }
 
     type Mutation {
@@ -167,6 +180,13 @@ const typeDefs = `#graphql
       # Bulk Example
       generateCompanies: CompaniesResult!
       generatePeople: PeopleResult!
+
+      # Categories Microservice
+      createCategory(name: String!): Category!
+      # Can be null because the category might not be found
+      updateCategory(id: ID!, newName: String!): Category  
+      # The boolean is used to indicate success or failure
+      deleteCategory(id: ID!): Boolean! 
     }
 `;
 
