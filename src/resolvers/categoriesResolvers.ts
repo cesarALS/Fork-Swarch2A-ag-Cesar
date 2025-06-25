@@ -91,3 +91,23 @@ export const createCategoryResolver = async (category_name: string) => {
         created_at: new Date(data.created_at)
     }
 }
+
+export const deleteCategory = async (id: UUID) => {
+    const response = await fetchMS<null>({
+        url: `${URLS.CATEGORIES_MS}/${id}`,
+        method: "DELETE"
+    })
+
+
+    // TODO: fix the status code in the categories ms and here, because it should be 204 (No Content)
+    if (response.status != 200) {        
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+              },
+        });
+    }
+
+    return true
+}
+
