@@ -111,3 +111,29 @@ export const deleteCategory = async (id: UUID) => {
     return true
 }
 
+
+export const updateCategory = async(id: UUID, newName: string) => {
+    // TODO: fix the way put requests are sent both here and in the categories ms, 
+    // because the parameters  should be in the body and not in the url
+    const response = await fetchMS<Category>({
+        url: `${URLS.CATEGORIES_MS}/${id}?new_name=${newName}`,
+        method: "PUT",
+        wrapInData: true
+    })
+
+    if (response.status != 200) {        
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+              },
+        });
+    }
+
+    const data = response.responseBody.data
+    return {
+        id: data.id,
+        category: data.category,
+        updated_at: new Date(data.updated_at),
+        created_at: new Date(data.created_at)
+    }
+}
