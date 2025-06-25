@@ -35,3 +35,31 @@ export const categoryResolver = async (id: UUID) => {
         created_at: new Date(data.created_at)
     }
 }
+
+export const categoriesResolver = async () => {
+    const response = await fetchMS<Category[]>({
+        url: `${URLS.CATEGORIES_MS}`,
+        responseType: URL_TYPES.JSON,
+        wrapInData: true
+    })
+
+    if (response.status != 200) {
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+              },
+        });
+    }
+
+    const categories = response.responseBody.data
+    const processedResponse = categories.map((cat) => {
+        return {
+            id: cat.id,
+            category: cat.category,
+            updated_at: new Date(cat.updated_at),
+            created_at: new Date(cat.created_at)
+        }
+    })
+
+    return processedResponse
+}
