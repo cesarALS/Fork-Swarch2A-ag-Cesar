@@ -24,7 +24,6 @@ export const categoryResolver = async (id: UUID) => {
     const url = `${URLS.CATEGORIES_MS}/${id}`
     const response = await fetchMS<Category>({
         url: url,
-        responseType: URL_TYPES.JSON,
         wrapInData: true
     })
 
@@ -43,7 +42,6 @@ export const categoryResolver = async (id: UUID) => {
 export const categoriesResolver = async () => {
     const response = await fetchMS<Category[]>({
         url: `${URLS.CATEGORIES_MS}`,
-        responseType: URL_TYPES.JSON,
         wrapInData: true
     })
 
@@ -64,17 +62,15 @@ export const categoriesResolver = async () => {
 }
 
 export const createCategoryResolver = async (category_name: string) => {
-    // TODO: fix the way post requests are sent both here and in the categories ms, 
-    // because the parameters  should be in the body and not in the url
     const response = await fetchMS<Category>({
-        url: `${URLS.CATEGORIES_MS}/?category_name=${category_name}`,
+        url: `${URLS.CATEGORIES_MS}/`,
         method: "POST",
-        responseType: URL_TYPES.JSON,
+        body: JSON.stringify({ category: category_name }),
+        headers: new Headers({ "Content-Type": "application/json" }),
         wrapInData: true,
     })
 
-    // TODO: fix the status code in the categories ms and here, because it should be 201 (Created)
-    if (response.status != 200) {
+    if (response.status != 201) {
         throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
             extensions: {
                 code: ErrorCodes.GENERIC_CLIENT_ERROR,
@@ -89,11 +85,11 @@ export const createCategoryResolver = async (category_name: string) => {
 export const deleteCategory = async (id: UUID) => {
     const response = await fetchMS<null>({
         url: `${URLS.CATEGORIES_MS}/${id}`,
-        method: "DELETE"
+        method: "DELETE",
+        responseType: URL_TYPES.NONE
     })
 
-    // TODO: fix the status code in the categories ms and here, because it should be 204 (No Content)
-    if (response.status != 200) {        
+    if (response.status != 204) {        
         throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
             extensions: {
                 code: ErrorCodes.GENERIC_CLIENT_ERROR,
@@ -106,11 +102,11 @@ export const deleteCategory = async (id: UUID) => {
 
 
 export const updateCategory = async(id: UUID, newName: string) => {
-    // TODO: fix the way put requests are sent both here and in the categories ms, 
-    // because the parameters  should be in the body and not in the url
     const response = await fetchMS<Category>({
-        url: `${URLS.CATEGORIES_MS}/${id}?new_name=${newName}`,
+        url: `${URLS.CATEGORIES_MS}/${id}`,
         method: "PUT",
+        body: JSON.stringify({ category: newName }),
+        headers: new Headers({ "Content-Type": "application/json" } ),
         wrapInData: true
     })
 
