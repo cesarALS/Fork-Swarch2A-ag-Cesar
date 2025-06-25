@@ -150,8 +150,8 @@ const typeDefs = `#graphql
     type Category {
       id: ID!
       category: String!
-      created_at: Date!
-      updated_at: Date!
+      createdAt: Date!
+      updatedAt: Date!
     }
 
 

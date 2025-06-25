@@ -3,6 +3,9 @@ import { fetchMS, URL_TYPES, URLS } from "../fetchMicroservices.js"
 import { GraphQLError } from "graphql";
 import { ErrorCodes } from "../errorHandling.js";
 
+// The Dates are in snake case because the backend is in Python and that is the
+// convention in the language. However, the getJSONFromCategory function transforms
+// it to camelCase and the GraphQL Schema is in camel case too, so this is not a probleme
 interface Category {
     id: UUID,
     category: string,
@@ -15,8 +18,8 @@ function getJSONFromCategory (cat: Category) {
     return {
         id: cat.id,
         category: cat.category,
-        updated_at: new Date(cat.updated_at),
-        created_at: new Date(cat.created_at)
+        updatedAt: new Date(cat.updated_at),
+        createdAt: new Date(cat.created_at)
     }
 }
 
