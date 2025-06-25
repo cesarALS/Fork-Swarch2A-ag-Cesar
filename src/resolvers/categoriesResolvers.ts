@@ -18,7 +18,6 @@ export const categoryResolver = async (id: UUID) => {
         responseType: URL_TYPES.JSON,
         wrapInData: true
     })
-    console.log("Fetched from this url:", url)
 
     if (response.status != 200) {
         throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
@@ -29,7 +28,6 @@ export const categoryResolver = async (id: UUID) => {
     }
 
     const data = response.responseBody.data
-    console.log("data is:", data)
     return {
         id: data.id,
         category: data.category,
