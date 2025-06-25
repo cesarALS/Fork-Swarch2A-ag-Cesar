@@ -1,13 +1,10 @@
 /**
  * This file contains the resolvers needed to use the groups MS, exposed by the groups microservice
  */
-
 import { UUID } from "node:crypto";
 import { Buffer } from "node:buffer";
 import { fetchMS, URL_TYPES, URLS } from "../fetchMicroservices.js";
 import { Image } from "../types.js";
-import { GraphQLError } from "graphql";
-import { ErrorCodes } from "../errorHandling.js";
 
 interface Group {
     id: UUID;
@@ -39,13 +36,6 @@ export interface CreateGroup {
 
 const getImage = async (url: string) => {
     const response = await fetchMS({ url, responseType: URL_TYPES.JPEG });
-    if (response.status !== 200) {
-        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
-            extensions: {
-                code: ErrorCodes.GENERIC_CLIENT_ERROR,
-            },
-        });
-    }
 
     const body = response.responseBody as Buffer;
     return body.toString("base64");
@@ -59,14 +49,6 @@ export const groupsResolver = async () => {
     const response = await fetchMS<GroupFromAPI[]>({
         url: `${URLS.GROUPS_MS}/groups`,
     });
-
-    if (response.status !== 200) {
-        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
-            extensions: {
-                code: ErrorCodes.GENERIC_CLIENT_ERROR,
-            },
-        });
-    }
 
     const groups = response.responseBody.data;
 
@@ -88,7 +70,6 @@ export const groupsResolver = async () => {
         }),
     );
 
-    // console.log(processedResponse)
     return processedResponse;
 };
 
@@ -132,14 +113,6 @@ export const createGroupResolver = async (group: CreateGroup) => {
         headers: new Headers(),
         body: formData,
     });
-
-    if (response.status !== 200) {
-        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
-            extensions: {
-                code: ErrorCodes.GENERIC_CLIENT_ERROR,
-            },
-        });
-    }
 
     const data = response.responseBody.data;
     return {

@@ -87,15 +87,8 @@ async function createExampleTask<T extends ExampleModel>(
         method: "GET",
         url: `${BULK_MS}/examples/${type}/`,
         wrapInData: true,
+        expectedStatus: 202
     });
-
-    if (response.status !== 202) {
-        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
-            extensions: {
-                code: ErrorCodes.GENERIC_CLIENT_ERROR,
-            },
-        });
-    }
 
     return response.responseBody.data;
 }
@@ -118,14 +111,6 @@ async function getTaskResult<T extends ExampleModel>(
         url,
         wrapInData: true,
     });
-
-    if (response.status !== 200) {
-        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
-            extensions: {
-                code: ErrorCodes.GENERIC_CLIENT_ERROR,
-            },
-        });
-    }
 
     console.dir(response.responseBody.data);
 

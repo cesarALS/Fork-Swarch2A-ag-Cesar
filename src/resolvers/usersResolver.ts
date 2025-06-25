@@ -17,22 +17,9 @@ interface UserFromAPI {
 }
 
 export const userResolver = async (id: UUID) => {
-    if (!id) {
-        console.error("Missing the mandatory id field in the user resolver")
-        return
-    }
-
     const response = await fetchMS<UserFromAPI>({
         url: `${URLS.USERS_MS}/api/users/${id}`
     })
-    
-    if (response.status != 200) {
-        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
-            extensions: {
-                code: ErrorCodes.GENERIC_CLIENT_ERROR
-            }
-        })
-    }
 
     const user = response.responseBody.data
     return {
