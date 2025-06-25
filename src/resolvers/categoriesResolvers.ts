@@ -63,3 +63,31 @@ export const categoriesResolver = async () => {
 
     return processedResponse
 }
+
+export const createCategoryResolver = async (category_name: string) => {
+    // TODO: fix the way post requests are sent both here and in the categories ms, 
+    // because the parameters  should be in the body and not in the url
+    const response = await fetchMS<Category>({
+        url: `${URLS.CATEGORIES_MS}/?category_name=${category_name}`,
+        method: "POST",
+        responseType: URL_TYPES.JSON,
+        wrapInData: true,
+    })
+
+    // TODO: fix the status code in the categories ms and here, because it should be 201 (Created)
+    if (response.status != 200) {
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+              },
+        });
+    }
+
+    const data = response.responseBody.data
+    return {
+        id: data.id,
+        category: data.category,
+        updated_at: new Date(data.updated_at),
+        created_at: new Date(data.created_at)
+    }
+}

@@ -27,7 +27,7 @@ import {
 import { dateScalar } from "./customScalars.js";
 import { ErrorCodes } from "./errorHandling.js";
 import { UUID } from "node:crypto";
-import { categoriesResolver, categoryResolver } from "./resolvers/categoriesResolvers.js";
+import { categoriesResolver, categoryResolver, createCategoryResolver } from "./resolvers/categoriesResolvers.js";
 
 // Here, we define our graphql schema
 const typeDefs = `#graphql
@@ -245,6 +245,7 @@ const resolvers = {
         },
         generateCompanies: async () => generateCompaniesResolver(),
         generatePeople: async () => generatePeopleResolver(),
+        createCategory: async (_: any, { name } : { name: string }) => createCategoryResolver(name),
     },
 };
 
