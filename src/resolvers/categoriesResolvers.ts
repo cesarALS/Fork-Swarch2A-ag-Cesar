@@ -11,6 +11,15 @@ interface Category {
 }
 
 
+function getJSONFromCategory (cat: Category) {
+    return {
+        id: cat.id,
+        category: cat.category,
+        updated_at: new Date(cat.updated_at),
+        created_at: new Date(cat.created_at)
+    }
+}
+
 export const categoryResolver = async (id: UUID) => {
     const url = `${URLS.CATEGORIES_MS}/${id}`
     const response = await fetchMS<Category>({
@@ -27,13 +36,8 @@ export const categoryResolver = async (id: UUID) => {
         });
     }
 
-    const data = response.responseBody.data
-    return {
-        id: data.id,
-        category: data.category,
-        updated_at: new Date(data.updated_at),
-        created_at: new Date(data.created_at)
-    }
+    const category = response.responseBody.data
+    return getJSONFromCategory(category)
 }
 
 export const categoriesResolver = async () => {
@@ -52,13 +56,8 @@ export const categoriesResolver = async () => {
     }
 
     const categories = response.responseBody.data
-    const processedResponse = categories.map((cat) => {
-        return {
-            id: cat.id,
-            category: cat.category,
-            updated_at: new Date(cat.updated_at),
-            created_at: new Date(cat.created_at)
-        }
+    const processedResponse = categories.map((category) => {
+        return getJSONFromCategory(category)
     })
 
     return processedResponse
@@ -83,13 +82,8 @@ export const createCategoryResolver = async (category_name: string) => {
         });
     }
 
-    const data = response.responseBody.data
-    return {
-        id: data.id,
-        category: data.category,
-        updated_at: new Date(data.updated_at),
-        created_at: new Date(data.created_at)
-    }
+    const category = response.responseBody.data
+    return getJSONFromCategory(category)
 }
 
 export const deleteCategory = async (id: UUID) => {
@@ -97,7 +91,6 @@ export const deleteCategory = async (id: UUID) => {
         url: `${URLS.CATEGORIES_MS}/${id}`,
         method: "DELETE"
     })
-
 
     // TODO: fix the status code in the categories ms and here, because it should be 204 (No Content)
     if (response.status != 200) {        
@@ -129,11 +122,6 @@ export const updateCategory = async(id: UUID, newName: string) => {
         });
     }
 
-    const data = response.responseBody.data
-    return {
-        id: data.id,
-        category: data.category,
-        updated_at: new Date(data.updated_at),
-        created_at: new Date(data.created_at)
-    }
+    const category = response.responseBody.data
+    return getJSONFromCategory(category)
 }
