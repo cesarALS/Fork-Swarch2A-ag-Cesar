@@ -27,6 +27,7 @@ import {
 import { dateScalar } from "./customScalars.js";
 import { ErrorCodes } from "./errorHandling.js";
 import { UUID } from "node:crypto";
+import { categoriesResolver, categoryResolver, createCategoryResolver, deleteCategory, updateCategory } from "./resolvers/categoriesResolvers.js";
 
 // Here, we define our graphql schema
 const typeDefs = `#graphql
@@ -146,6 +147,14 @@ const typeDefs = `#graphql
     }
 
 
+    type Category {
+      id: ID!
+      category: String!
+      createdAt: Date!
+      updatedAt: Date!
+    }
+
+
     type Query {
       authme: User!
       todos: [Todo!]!
@@ -155,6 +164,11 @@ const typeDefs = `#graphql
       # Bulk Example
       exampleCompanies(id: ID!): CompaniesResult!
       examplePeople(id: ID!): PeopleResult!
+
+      # Categories Microservice
+      # Can be null because the category might not be found
+      category(id: ID!): Category 
+      categories: [Category!]!
     }
 
     type Mutation {
@@ -167,6 +181,13 @@ const typeDefs = `#graphql
       # Bulk Example
       generateCompanies: CompaniesResult!
       generatePeople: PeopleResult!
+
+      # Categories Microservice
+      createCategory(name: String!): Category!
+      # Can be null because the category might not be found
+      updateCategory(id: ID!, newName: String!): Category  
+      # The boolean is used to indicate success or failure
+      deleteCategory(id: ID!): Boolean! 
     }
 `;
 
@@ -192,6 +213,8 @@ const resolvers = {
             exampleCompaniesResolver(id),
         examplePeople: async (_: any, { id }: { id: string }) =>
             examplePeopleResolver(id),
+        category: async(_: any, { id }: { id: UUID }) => categoryResolver(id),
+        categories: async () => categoriesResolver(),
     },
     Mutation: {
         signUp: async (
@@ -222,6 +245,9 @@ const resolvers = {
         },
         generateCompanies: async () => generateCompaniesResolver(),
         generatePeople: async () => generatePeopleResolver(),
+        createCategory: async (_: any, { name } : { name: string }) => createCategoryResolver(name),
+        deleteCategory: async (_: any, { id } : { id: UUID }) => deleteCategory(id),
+        updateCategory: async (_: any, { id, newName } : { id: UUID, newName: string}) => updateCategory(id, newName),
     },
 };
 
