@@ -63,16 +63,8 @@ export const signUp = async (data: SignUp, context: Context): Promise<User> => {
             "Content-Type": "application/json",
         }),
         body: JSON.stringify(data),
+        expectedStatus: 201,
     });
-
-    if (response.status !== 201) {
-        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
-            extensions: {
-                code: ErrorCodes.GENERIC_CLIENT_ERROR,
-                serviceErrors: response.responseBody.errors,
-            },
-        });
-    }
 
     const signUpResponse = response.responseBody.data;
 
@@ -97,15 +89,6 @@ export const login = async (data: Login, context: Context): Promise<User> => {
         }),
         body: JSON.stringify(data),
     });
-
-    if (response.status !== 200) {
-        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
-            extensions: {
-                code: ErrorCodes.GENERIC_CLIENT_ERROR,
-                serviceErrors: response.responseBody.errors,
-            },
-        });
-    }
 
     const loginResponse = response.responseBody.data;
 
@@ -146,15 +129,6 @@ export const authme = async (context: Context): Promise<User> => {
                 code: ErrorCodes.INVALID_AUTH_TOKEN,
             },
         });
-    } else if (response.status !== 200) {
-        throw (
-            (new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR),
-            {
-                extensions: {
-                    code: ErrorCodes.GENERIC_CLIENT_ERROR,
-                },
-            })
-        );
     }
 
     const data = response.responseBody.data;
@@ -186,6 +160,7 @@ export const logout = async (context: Context): Promise<Boolean> => {
             Authorization: `Bearer ${token}`,
         }),
         body: null,
+        expectedStatus: 204
     });
 
     if (response.status === 401) {
@@ -194,16 +169,7 @@ export const logout = async (context: Context): Promise<Boolean> => {
                 code: ErrorCodes.INVALID_AUTH_TOKEN,
             },
         });
-    } else if (response.status !== 204) {
-        throw (
-            (new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR),
-            {
-                extensions: {
-                    code: ErrorCodes.GENERIC_CLIENT_ERROR,
-                },
-            })
-        );
-    }
+    } 
 
     return true;
 };

@@ -47,15 +47,37 @@ interface FetchMSParams {
     headers?: Headers; // The headers provided
     body?: Body; //The body of the request
     wrapInData?: boolean; // If the API does not give its information like data, errors, etc., wrap the response in the data field
+    expectedStatus?: Number; // If the status code is different from this, throw an error. Assumes 200 (OK) by default
 }
+
+/**
+ * This function wraps privateFetchMS and adds basic error handling to it. This way, the user
+ * doesn't need to add the repetitive boilerplate that throws the GraphQLError
+ * @param params
+ * @returns The API response already processed
+ */
+export const fetchMS = async <ExpectedType>(params: FetchMSParams) => {
+    const response = await privateFetchMS<ExpectedType>(params)
+    
+    const status = response.status
+    const expectedStatus = (!params.expectedStatus) ? 200 : params.expectedStatus
+    if (status != expectedStatus) {
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+            },
+        });
+    }
+
+    return response
+};
 
 /**
  * This is a generic function that wraps js fetch(), providing some aditional features
  * @returns The API response already processed
  */
-export const fetchMS = async <ExpectedType>(params: FetchMSParams) => {
+const privateFetchMS = async <ExpectedType>(params: FetchMSParams) => {
     const { url, responseType, method, headers, body, wrapInData } = params;
-
     try {
         const response = await fetch(url, {
             method,
@@ -106,4 +128,4 @@ export const fetchMS = async <ExpectedType>(params: FetchMSParams) => {
             },
         });
     }
-};
+}
