@@ -146,3 +146,33 @@ export const createGroupResolver = async (group: CreateGroup) => {
     const data = response.responseBody.data;
     return getJSONFromGroup(data, false)
 };
+
+/**
+ * Resolver for the deleteGroups mutation type
+ * @returns
+ */
+export const deleteGroupResolver = async (id: UUID) => {
+    // If there is an error in the request fetchMS will throw an exception
+    // Otherwise the delete operation was successful
+    await fetchMS<null>({
+        url: `${URLS.GROUPS_MS}/groups/${id}`,
+        method: "DELETE",
+        expectedStatus: 204,
+        responseType: URL_TYPES.NONE
+    })
+
+    return true
+}
+
+/**
+ * Resolver that gets a group given its id
+ * @returns
+ */
+export const groupResolver = async (id: UUID) => {
+    const response = await fetchMS<GroupFromAPI>({
+        url: `${URLS.GROUPS_MS}/groups/${id}`,
+    })
+
+    const group = response.responseBody.data
+    return getJSONFromGroup(group, true)
+}
