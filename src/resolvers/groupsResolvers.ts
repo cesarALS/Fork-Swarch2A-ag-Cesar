@@ -36,7 +36,29 @@ export interface CreateGroup {
     isOpen: boolean;
 }
 
+const getJSONFromGroup = async (group: GroupFromAPI, includePic: boolean) => {
+    const JSON : Group = {
+        id: group.id,
+        name: group.name,
+        description: group.description,
+        isVerified: group.isVerified,
+        isOpen: group.isOpen,
+        createdAt: new Date(group.createdAt),
+        updatedAt: new Date(group.updatedAt),
+    }
 
+    if (includePic) {
+        const image = await getImage(group.profilePicUrl)
+        if (image) {
+            JSON.profilePic = {
+            data: image,
+            mimeType: "jpeg", // TODO: support PNG and WebP formats
+            }
+        }
+    }
+
+    return JSON
+}
 
 const getImage = async (url: string) => {
     // It is necessary to use unwrappedFetchMS because fetchMS doesn't return a status code when throwing
@@ -73,19 +95,7 @@ export const groupsResolver = async () => {
 
     const processedResponse: Group[] = await Promise.all(
         groups.map(async (grp) => {
-            return {
-                id: grp.id,
-                name: grp.name,
-                description: grp.description,
-                profilePic: {
-                    data: await getImage(grp.profilePicUrl),
-                    mimeType: "jpeg", // TODO: support PNG and WebP formats
-                },
-                isVerified: grp.isVerified,
-                isOpen: grp.isOpen,
-                createdAt: new Date(grp.createdAt),
-                updatedAt: new Date(grp.updatedAt),
-            };
+            return getJSONFromGroup(grp, true)
         }),
     );
 
@@ -134,13 +144,5 @@ export const createGroupResolver = async (group: CreateGroup) => {
     });
 
     const data = response.responseBody.data;
-    return {
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        isVerified: data.isVerified,
-        isOpen: data.isOpen,
-        createdAt: new Date(data.createdAt),
-        updatedAt: new Date(data.updatedAt),
-    };
+    return getJSONFromGroup(data, false)
 };
