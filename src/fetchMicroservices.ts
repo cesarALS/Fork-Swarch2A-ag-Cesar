@@ -57,7 +57,7 @@ interface FetchMSParams {
  * @returns The API response already processed
  */
 export const fetchMS = async <ExpectedType>(params: FetchMSParams) => {
-    const response = await privateFetchMS<ExpectedType>(params)
+    const response = await unwrappedFetchMS<ExpectedType>(params)
     
     const status = response.status
     const expectedStatus = (!params.expectedStatus) ? 200 : params.expectedStatus
@@ -76,7 +76,7 @@ export const fetchMS = async <ExpectedType>(params: FetchMSParams) => {
  * This is a generic function that wraps js fetch(), providing some aditional features
  * @returns The API response already processed
  */
-const privateFetchMS = async <ExpectedType>(params: FetchMSParams) => {
+export const unwrappedFetchMS = async <ExpectedType>(params: FetchMSParams) => {
     const { url, responseType, method, headers, body, wrapInData } = params;
     try {
         const response = await fetch(url, {
