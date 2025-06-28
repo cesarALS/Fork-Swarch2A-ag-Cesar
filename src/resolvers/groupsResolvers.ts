@@ -3,14 +3,16 @@
  */
 import { UUID } from "node:crypto";
 import { Buffer } from "node:buffer";
-import { fetchMS, URL_TYPES, URLS } from "../fetchMicroservices.js";
+import { fetchMS, unwrappedFetchMS, URL_TYPES, URLS } from "../fetchMicroservices.js";
 import { Image } from "../types.js";
+import { GraphQLError } from "graphql";
+import { ErrorCodes } from "../errorHandling.js";
 
 interface Group {
     id: UUID;
     name: string;
     description: string;
-    profilePic: Image;
+    profilePic?: Image;
     isVerified: boolean;
     isOpen: boolean;
     createdAt: Date;
@@ -34,9 +36,48 @@ export interface CreateGroup {
     isOpen: boolean;
 }
 
-const getImage = async (url: string) => {
-    const response = await fetchMS({ url, responseType: URL_TYPES.JPEG });
+const getJSONFromGroup = async (group: GroupFromAPI, includePic: boolean) => {
+    const JSON : Group = {
+        id: group.id,
+        name: group.name,
+        description: group.description,
+        isVerified: group.isVerified,
+        isOpen: group.isOpen,
+        createdAt: new Date(group.createdAt),
+        updatedAt: new Date(group.updatedAt),
+    }
 
+    if (includePic) {
+        const image = await getImage(group.profilePicUrl)
+        if (image) {
+            JSON.profilePic = {
+            data: image,
+            mimeType: "jpeg", // TODO: support PNG and WebP formats
+            }
+        }
+    }
+
+    return JSON
+}
+
+const getImage = async (url: string) => {
+    // It is necessary to use unwrappedFetchMS because fetchMS doesn't return a status code when throwing
+    // a GraphQLError, so we can't know if it failed because of a 404 and return null in that case
+    const response = await unwrappedFetchMS({ url, responseType: URL_TYPES.JPEG })
+
+    // TODO: ideally the backend should return some default image when a group doesn't
+    // have one, instead of having to return null here. This would also let us use fetchMS in getImage
+    if ( response.status == 404 ) {
+        return null
+    }
+    if ( response.status != 200 ) {
+        throw new GraphQLError(ErrorCodes.GENERIC_CLIENT_ERROR, {
+            extensions: {
+                code: ErrorCodes.GENERIC_CLIENT_ERROR,
+            },
+        });
+    }
+    
     const body = response.responseBody as Buffer;
     return body.toString("base64");
 };
@@ -54,19 +95,7 @@ export const groupsResolver = async () => {
 
     const processedResponse: Group[] = await Promise.all(
         groups.map(async (grp) => {
-            return {
-                id: grp.id,
-                name: grp.name,
-                description: grp.description,
-                profilePic: {
-                    data: await getImage(grp.profilePicUrl),
-                    mimeType: "jpeg", // TODO: support PNG and WebP formats
-                },
-                isVerified: grp.isVerified,
-                isOpen: grp.isOpen,
-                createdAt: new Date(grp.createdAt),
-                updatedAt: new Date(grp.updatedAt),
-            };
+            return getJSONFromGroup(grp, true)
         }),
     );
 
@@ -115,13 +144,35 @@ export const createGroupResolver = async (group: CreateGroup) => {
     });
 
     const data = response.responseBody.data;
-    return {
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        isVerified: data.isVerified,
-        isOpen: data.isOpen,
-        createdAt: new Date(data.createdAt),
-        updatedAt: new Date(data.updatedAt),
-    };
+    return getJSONFromGroup(data, false)
 };
+
+/**
+ * Resolver for the deleteGroups mutation type
+ * @returns
+ */
+export const deleteGroupResolver = async (id: UUID) => {
+    // If there is an error in the request fetchMS will throw an exception
+    // Otherwise the delete operation was successful
+    await fetchMS<null>({
+        url: `${URLS.GROUPS_MS}/groups/${id}`,
+        method: "DELETE",
+        expectedStatus: 204,
+        responseType: URL_TYPES.NONE
+    })
+
+    return true
+}
+
+/**
+ * Resolver that gets a group given its id
+ * @returns
+ */
+export const groupResolver = async (id: UUID) => {
+    const response = await fetchMS<GroupFromAPI>({
+        url: `${URLS.GROUPS_MS}/groups/${id}`,
+    })
+
+    const group = response.responseBody.data
+    return getJSONFromGroup(group, true)
+}

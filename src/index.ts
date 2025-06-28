@@ -13,6 +13,8 @@ import { todosResolver, createTodo } from "./resolvers/todoResolvers.js";
 import {
     CreateGroup,
     createGroupResolver,
+    deleteGroupResolver,
+    groupResolver,
     groupsResolver,
 } from "./resolvers/groupsResolvers.js";
 import {
@@ -157,8 +159,12 @@ const typeDefs = `#graphql
 
     type Query {
       authme: User!
+
       todos: [Todo!]!
+
       groups: [Group!]!
+      group(id: ID!): Group!
+
       user(id: ID!): UserProfile!
 
       # Bulk Example
@@ -172,11 +178,17 @@ const typeDefs = `#graphql
     }
 
     type Mutation {
+      # Auth 
       signUp(input: SignUp!): User!
       login(input: Login!): User!
       logout: Boolean!
+
+      # Todos
       createTodo(input: NewTodo!): Todo!
+
+      # Groups microservice
       createGroup(input: NewGroup!): GroupWithoutImage!
+      deleteGroup(id: ID!): Boolean!
 
       # Bulk Example
       generateCompanies: CompaniesResult!
@@ -208,6 +220,7 @@ const resolvers = {
         authme: async (_: any, {}, context: Context) => authme(context),
         todos: () => todosResolver(),
         groups: async () => groupsResolver(),
+        group: async (_: any, { id }: { id: UUID }) => groupResolver(id),
         user: async (_: any, { id }: { id: UUID }) => userResolver(id),
         exampleCompanies: async (_: any, { id }: { id: string }) =>
             exampleCompaniesResolver(id),
@@ -242,6 +255,9 @@ const resolvers = {
         },
         createGroup: async (_: any, { input }: { input: CreateGroup }) => {
             return await createGroupResolver(input);
+        },
+        deleteGroup: async (_: any, { id } : { id: UUID }) => {
+          return await deleteGroupResolver(id)
         },
         generateCompanies: async () => generateCompaniesResolver(),
         generatePeople: async () => generatePeopleResolver(),
