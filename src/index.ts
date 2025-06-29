@@ -9,7 +9,6 @@ import {
     signUp,
     SignUp,
 } from "./resolvers/authResolvers.js";
-import { todosResolver, createTodo } from "./resolvers/todoResolvers.js";
 import {
     CreateGroup,
     createGroupResolver,
@@ -53,23 +52,6 @@ const typeDefs = `#graphql
       email: String!
       username: String!
       isSuperUser: Boolean!
-    }
-
-    type Todo {
-      id: ID!
-      text: String!
-      done: Boolean!
-      user: TodoUser!
-    }
-
-    type TodoUser {
-      id: ID!
-      name: String!
-    }
-
-    input NewTodo {
-      text: String!
-      name: String!
     }
 
     type Image {
@@ -161,8 +143,6 @@ const typeDefs = `#graphql
     type Query {
       authme: User!
 
-      todos: [Todo!]!
-
       groups: [Group!]!
       group(id: ID!): Group!
 
@@ -183,9 +163,6 @@ const typeDefs = `#graphql
       signUp(input: SignUp!): User!
       login(input: Login!): User!
       logout: Boolean!
-
-      # Todos
-      createTodo(input: NewTodo!): Todo!
 
       # Groups microservice
       createGroup(input: NewGroup!): GroupWithoutImage!
@@ -219,7 +196,6 @@ const resolvers = {
     Date: dateScalar,
     Query: {
         authme: async (_: any, {}, context: Context) => authme(context),
-        todos: () => todosResolver(),
         groups: async () => groupsResolver(),
         group: async (_: any, { id }: { id: UUID }) => groupResolver(id),
         user: async (_: any, { id }: { id: UUID }) => userResolver(id),
@@ -247,12 +223,6 @@ const resolvers = {
         },
         logout: async (_: any, {}, context: Context) => {
             return await logout(context);
-        },
-        createTodo: (
-            _: any,
-            { input }: { input: { text: string; name: string } },
-        ) => {
-            return createTodo(input.text, input.name);
         },
         createGroup: async (_: any, { input }: { input: CreateGroup }) => {
             return await createGroupResolver(input);
