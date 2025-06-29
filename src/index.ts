@@ -38,6 +38,7 @@ const typeDefs = `#graphql
     scalar Date
 
     input SignUp {
+      username: String!
       email: String!
       password: String!
     }

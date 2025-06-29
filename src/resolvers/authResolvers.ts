@@ -1,5 +1,5 @@
 import { UUID } from "node:crypto";
-import { fetchMS, URL_TYPES, URLS } from "../fetchMicroservices.js";
+import { fetchMS, unwrappedFetchMS, URL_TYPES, URLS } from "../fetchMicroservices.js";
 import { Context } from "../index.js";
 import { GraphQLError } from "graphql";
 import { ErrorCodes } from "../errorHandling.js";
@@ -11,12 +11,14 @@ interface User {
     isSuperUser: boolean;
 }
 
-export interface SignUp {
+export interface Login {
     email: string;
     password: string;
 }
 
-export interface Login extends SignUp {}
+export interface SignUp extends Login {
+    username: string;
+}
 
 interface SignUpResponse {
     id: UUID;
@@ -30,11 +32,21 @@ interface AuthMeResponse {
     email: string;
     isSuperUser: boolean;
 }
+interface CreateUserResponse {
+    id: UUID;
+    username: string;
+}
+
+interface GetUserResponse extends CreateUserResponse {
+    profilePicUrl: string;
+}
 
 /** This is the name of the token to send to the frontend for the JWT Cookie */
 const AUTH_TOKEN = "token";
 
 const setCookies = (context: Context, jwt: string) => {
+    // TODO: the duration of the cookie coincides with the default duration of the JWT only
+    // because it is hardcoded. This should be set up through environmental variables
     context.res.setHeader(
         "Set-Cookie",
         `${AUTH_TOKEN}=${jwt}; HttpOnly; Secure; Max-Age=3600`,
@@ -54,10 +66,9 @@ const getJWTHeader = (context: Context): string | undefined => {
 };
 
 /** Sign Up Resolver */
-export const signUp = async (data: SignUp, context: Context): Promise<User> => {
-    const response = await fetchMS<SignUpResponse>({
+export const signUp = async (data: SignUp, context: Context): Promise<User> | null => {
+    const authResponse = await fetchMS<SignUpResponse>({
         url: `${URLS.AUTH_MS}/signup`,
-        responseType: URL_TYPES.JSON,
         method: "POST",
         headers: new Headers({
             "Content-Type": "application/json",
@@ -66,23 +77,65 @@ export const signUp = async (data: SignUp, context: Context): Promise<User> => {
         expectedStatus: 201,
     });
 
-    const signUpResponse = response.responseBody.data;
+    const id = authResponse.responseBody.data.id;
+    const jwt = authResponse.responseBody.data.jwt
 
-    setCookies(context, signUpResponse.jwt);
+    try {
+        const userMSBody = {
+            id: id,
+            username: data.username
+        }
+        const userMSResponse = await fetchMS<CreateUserResponse>({
+            url: `${URLS.USERS_MS}/`,
+            method: "POST",
+            headers: new Headers({
+                "Content-Type": "application/json"
+            }),
+            body: JSON.stringify(userMSBody),
+            expectedStatus: 201
+        })
 
-    return {
-        id: signUpResponse.id,
-        email: data.email,
-        username: "Temp Username", // TODO: Call the users ms to resolve this field
-        isSuperUser: false,
-    };
+        setCookies(context, jwt);
+
+        return {
+            id: id,
+            email: data.email,
+            username: userMSResponse.responseBody.data.username, 
+            isSuperUser: false
+        };
+    } catch (err) {
+        console.log("Error:", err)
+        try {
+            // Rollback the creation of the user in the auth database. This operation requires
+            // a JWT in the Authorization header to carry out
+            await fetchMS<null>({
+                url: `${URLS.AUTH_MS}/auth/delete`,
+                method: "DELETE",
+                headers: new Headers({
+                    "Authorization": `Bearer ${jwt}`
+                }),
+                responseType: URL_TYPES.NONE,
+                expectedStatus: 204
+            })
+            console.log(`Successfully rolled back the creation of user with id ${id} in the auth database`)
+        } catch (err) {
+            console.log("Error:", err)
+            console.log(`User with id ${id} was created in the auth database but not in the user_ms database`)
+            console.log("The operation couldn't be rolled back and the databases are now in an inconsistent state")
+            console.log("💀")
+            throw new GraphQLError(ErrorCodes.INTERNAL_SERVER_ERROR, {
+                extensions: {
+                    code: ErrorCodes.INTERNAL_SERVER_ERROR
+                }
+            })
+        }
+    }
 };
 
 /**Login Resolver */
 export const login = async (data: Login, context: Context): Promise<User> => {
     const response = await fetchMS<LoginResponse>({
         url: `${URLS.AUTH_MS}/login`,
-        responseType: URL_TYPES.JSON,
         method: "POST",
         headers: new Headers({
             "Content-Type": "application/json",
@@ -91,13 +144,29 @@ export const login = async (data: Login, context: Context): Promise<User> => {
     });
 
     const loginResponse = response.responseBody.data;
-
+    const id = loginResponse.id
     setCookies(context, loginResponse.jwt);
 
+    // We use unwrappedFetchMS to handle the error ourselves.
+    // If we can't fetch the username then allow the login, but with degraded functionality (no username displayed)
+    let username = ""
+    try {
+        const userMSResponse = await unwrappedFetchMS<GetUserResponse>({
+            url: `${URLS.USERS_MS}/${id}` 
+        })
+        const userMSStatus = userMSResponse.status
+        if (userMSStatus == 200) {
+            username = userMSResponse.responseBody.data.username
+        }
+    } catch (err) {
+        console.log(`Couldn't fetch the username of user with id ${id}`)
+        console.log("Error:", err)
+    }
+    
     return {
-        id: loginResponse.id,
+        id: id,
         email: data.email,
-        username: "Temp Username", // TODO: Call the users ms to resolve this field
+        username: username, 
         isSuperUser: false,
     };
 };
