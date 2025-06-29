@@ -1,8 +1,6 @@
 import { fetchMS, URLS } from "../fetchMicroservices.js";
 import { UUID } from "node:crypto";
 import { Image } from "../types.js";
-import { GraphQLError } from "graphql";
-import { ErrorCodes } from "../errorHandling.js";
 
 export interface CreateUser {
     id: UUID;
@@ -18,7 +16,7 @@ interface UserFromAPI {
 
 export const userResolver = async (id: UUID) => {
     const response = await fetchMS<UserFromAPI>({
-        url: `${URLS.USERS_MS}/api/users/${id}`
+        url: `${URLS.USERS_MS}/${id}`
     })
 
     const user = response.responseBody.data
