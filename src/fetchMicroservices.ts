@@ -13,7 +13,7 @@ export const URLS = {
     GROUPS_MS: process.env.GROUPS_MS ?? "http://mu_groups_ms:8008/api",
     AUTH_MS: process.env.AUTH_MS ?? "http://mu_auth_ms:5000",
     BULK_MS: process.env.BULK_MS ?? "http://mu_bulk_ms:8080/api",
-    USERS_MS: process.env.USERS_MS ?? "http://mu_users_ms:8008",
+    USERS_MS: process.env.USERS_MS ?? "http://mu_users_ms:8008/api/users",
     CATEGORIES_MS: process.env.CATEGORIES_MS ?? "http://mu_categories_ms:8001/api/categories"
 };
 

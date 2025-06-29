@@ -19,7 +19,7 @@ services:
     GROUPS_MS: http://${mu_groups_ms_HOSTNAME:-mu_groups_ms}:${mu_groups_ms_EXPOSED_PORT:-8008}/api
     AUTH_MS: http://${mu_auth_ms_HOSTNAME:-mu_auth_ms}:${mu_auth_ms_INTERNAL_PORT:-5000}
     BULK_MS: http://${mu_bulk_ms_HOSTNAME:-mu_bulk_ms}:${mu_bulk_ms_INTERNAL_PORT:-8080}/api
-    USERS_MS: http://${mu_users_ms_HOSTNAME:-mu_users_ms}:${mu_users_ms_INTERNAL_PORT:-8008}
+    USERS_MS: http://${mu_users_ms_HOSTNAME:-mu_users_ms}:${mu_users_ms_INTERNAL_PORT:-8008}/api/users
     CATEGORIES_MS: http://${mu_categories_ms_HOSTNAME:-mu_categories_ms}:${mu_categories_ms_INTERNAL_PORT:-8001}/api/categories
 
     
