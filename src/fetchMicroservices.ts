@@ -40,13 +40,16 @@ type Body =
     | null
     | undefined;
 
-interface FetchMSParams {
+interface UnwrappedFetchMSParams {
     url: string; // The url to fetch
     responseType?: URL_TYPES; // The type of response (Use URL_TYPES)
     method?: "GET" | "POST" | "PUT" | "DELETE"; // The method (POST, PUT, GET, DELETE, etc.)
     headers?: Headers; // The headers provided
     body?: Body; //The body of the request
     wrapInData?: boolean; // If the API does not give its information like data, errors, etc., wrap the response in the data field
+}
+
+interface FetchMSParams extends UnwrappedFetchMSParams {
     expectedStatus?: Number; // If the status code is different from this, throw an error. Assumes 200 (OK) by default
 }
 
@@ -76,7 +79,7 @@ export const fetchMS = async <ExpectedType>(params: FetchMSParams) => {
  * This is a generic function that wraps js fetch(), providing some aditional features
  * @returns The API response already processed
  */
-export const unwrappedFetchMS = async <ExpectedType>(params: FetchMSParams) => {
+export const unwrappedFetchMS = async <ExpectedType>(params: UnwrappedFetchMSParams) => {
     const { url, responseType, method, headers, body, wrapInData } = params;
     try {
         const response = await fetch(url, {
