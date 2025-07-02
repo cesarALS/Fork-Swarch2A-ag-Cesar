@@ -13,3 +13,6 @@
 [submodule "categories_ms"]
 	path = categories_ms
 	url = https://github.com/SwArch-2025-1-2A/categories_ms
+[submodule "events_ms"]
+	path = events_ms
+	url = https://github.com/arojasag/events_ms

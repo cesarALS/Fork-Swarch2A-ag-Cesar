@@ -19,6 +19,7 @@ services:
     BULK_MS: http://${mu_bulk_ms_HOSTNAME:-mu_bulk_ms}:${mu_bulk_ms_INTERNAL_PORT:-8080}/api
     USERS_MS: http://${mu_users_ms_HOSTNAME:-mu_users_ms}:${mu_users_ms_INTERNAL_PORT:-8008}/api/users
     CATEGORIES_MS: http://${mu_categories_ms_HOSTNAME:-mu_categories_ms}:${mu_categories_ms_INTERNAL_PORT:-8001}/api/categories
+    EVENTS_MS: http://${mu_events_ms_HOSTNAME:-mu_events_ms}:${mu_events_ms_INTERNAL_PORT:-8080}/api/eventos
 
 
 include:
@@ -41,3 +42,6 @@ include:
   # Categories MS
   - path: categories_ms/docker-compose.yml
     project_directory: categories_ms/
+
+  - path: events_ms/docker-compose.yml
+    project_directory: events_ms/
