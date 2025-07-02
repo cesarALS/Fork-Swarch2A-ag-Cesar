@@ -14,7 +14,8 @@ export const URLS = {
     AUTH_MS: process.env.AUTH_MS ?? "http://mu_auth_ms:5000",
     BULK_MS: process.env.BULK_MS ?? "http://mu_bulk_ms:8080/api",
     USERS_MS: process.env.USERS_MS ?? "http://mu_users_ms:8008/api/users",
-    CATEGORIES_MS: process.env.CATEGORIES_MS ?? "http://mu_categories_ms:8001/api/categories"
+    CATEGORIES_MS: process.env.CATEGORIES_MS ?? "http://mu_categories_ms:8001/api/categories",
+    EVENTS_MS: process.env.EVENTS_MS ?? "http://mu_events_ms:8080/api/eventos"
 };
 
 export enum URL_TYPES {
