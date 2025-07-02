@@ -48,3 +48,13 @@ export const eventsResolver = async () => {
     })
     return processedResponse
 }
+
+export const eventResolver = async (id: UUID) => {
+    const response = await fetchMS<Event>({
+        url: `${URLS.EVENTS_MS}/${id}`,
+        wrapInData: true
+    })
+
+    const event = response.responseBody.data
+    return getJSONFromEvent(event)
+}
