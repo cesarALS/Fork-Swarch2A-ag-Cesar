@@ -29,7 +29,7 @@ import { dateScalar } from "./customScalars.js";
 import { ErrorCodes } from "./errorHandling.js";
 import { UUID } from "node:crypto";
 import { categoriesResolver, categoryResolver, createCategoryResolver, deleteCategory, updateCategory } from "./resolvers/categoriesResolvers.js";
-import { createEventResolver, eventResolver, eventsResolver, NewEvent } from "./resolvers/eventsResolver.js";
+import { createEventResolver, deleteEventResolver, eventResolver, eventsResolver, NewEvent } from "./resolvers/eventsResolver.js";
 
 // Here, we define our graphql schema
 const typeDefs = `#graphql
@@ -270,6 +270,7 @@ const resolvers = {
         deleteCategory: async (_: any, { id } : { id: UUID }) => deleteCategory(id),
         updateCategory: async (_: any, { id, newName } : { id: UUID, newName: string}) => updateCategory(id, newName),
         createEvent: async(_: any, { input } : { input: NewEvent }) => createEventResolver(input),
+        deleteEvent: async(_: any, { id } : { id: UUID }) => deleteEventResolver(id)
     },
 };
 

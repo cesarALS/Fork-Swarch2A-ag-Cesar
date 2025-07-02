@@ -1,5 +1,5 @@
 import { UUID } from "node:crypto";
-import { fetchMS, URLS } from "../fetchMicroservices.js";
+import { fetchMS, URL_TYPES, URLS } from "../fetchMicroservices.js";
 
 // The variables are in snake case because this is what the events microservice returns
 // This is the result of some naming conventions in .NET
@@ -110,3 +110,14 @@ export const createEventResolver = async (input: NewEvent) => {
     const event = response.responseBody.data
     return getJSONFromEvent(event)
 }
+
+export const deleteEventResolver = async (id: UUID) => {
+    await fetchMS<null>({
+        url: `${URLS.EVENTS_MS}/${id}`,
+        method: "DELETE",
+        responseType: URL_TYPES.NONE,
+        expectedStatus: 204
+    })
+
+    return true
+} 
