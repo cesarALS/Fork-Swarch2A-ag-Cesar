@@ -139,6 +139,29 @@ const typeDefs = `#graphql
       updatedAt: Date!
     }
 
+    input NewEvent {
+      title: String!
+      description: String!
+      place: String!
+      startsAt: Date!
+      endsAt: Date!
+      capacity: Int!
+    }
+
+    type Event {
+      id: ID!
+      title: String!
+      description: String!
+      place: String!
+      startsAt: Date!
+      endsAt: Date!
+      capacity: Int!
+      userCreatorId: ID!
+      groupCreatorId: ID
+      createdAt: Date!
+      updatedAt: Date!
+      deletedAt: Date
+    }
 
     type Query {
       authme: User!
@@ -156,6 +179,10 @@ const typeDefs = `#graphql
       # Can be null because the category might not be found
       category(id: ID!): Category 
       categories: [Category!]!
+
+      # Events Microservicec
+      event(id: ID!): Event!
+      events: [Event!]!
     }
 
     type Mutation {
@@ -178,6 +205,10 @@ const typeDefs = `#graphql
       updateCategory(id: ID!, newName: String!): Category  
       # The boolean is used to indicate success or failure
       deleteCategory(id: ID!): Boolean! 
+
+      # Events Microservice
+      createEvent(input: NewEvent!): Event!
+      deleteEvent(id: ID!): Boolean!
     }
 `;
 
