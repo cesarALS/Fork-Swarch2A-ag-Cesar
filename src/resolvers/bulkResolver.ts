@@ -2,10 +2,7 @@
  * This file contains the resolvers for bulk operations
  * exposed by the Bulk microservice
  */
-
 import { fetchMS, URL_TYPES, URLS } from "../fetchMicroservices.js";
-import { GraphQLError } from "graphql";
-import { ErrorCodes } from "../errorHandling.js";
 
 interface BulkMessage {
     es: string;

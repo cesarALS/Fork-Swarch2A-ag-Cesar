@@ -13,8 +13,9 @@ export const URLS = {
     GROUPS_MS: process.env.GROUPS_MS ?? "http://mu_groups_ms:8008/api",
     AUTH_MS: process.env.AUTH_MS ?? "http://mu_auth_ms:5000",
     BULK_MS: process.env.BULK_MS ?? "http://mu_bulk_ms:8080/api",
-    USERS_MS: process.env.USERS_MS ?? "http://mu_users_ms:8008",
-    CATEGORIES_MS: process.env.CATEGORIES_MS ?? "http://mu_categories_ms:8001/api/categories"
+    USERS_MS: process.env.USERS_MS ?? "http://mu_users_ms:8008/api/users",
+    CATEGORIES_MS: process.env.CATEGORIES_MS ?? "http://mu_categories_ms:8001/api/categories",
+    EVENTS_MS: process.env.EVENTS_MS ?? "http://mu_events_ms:8080/api/eventos"
 };
 
 export enum URL_TYPES {
@@ -40,13 +41,16 @@ type Body =
     | null
     | undefined;
 
-interface FetchMSParams {
+interface UnwrappedFetchMSParams {
     url: string; // The url to fetch
     responseType?: URL_TYPES; // The type of response (Use URL_TYPES)
     method?: "GET" | "POST" | "PUT" | "DELETE"; // The method (POST, PUT, GET, DELETE, etc.)
     headers?: Headers; // The headers provided
     body?: Body; //The body of the request
     wrapInData?: boolean; // If the API does not give its information like data, errors, etc., wrap the response in the data field
+}
+
+interface FetchMSParams extends UnwrappedFetchMSParams {
     expectedStatus?: Number; // If the status code is different from this, throw an error. Assumes 200 (OK) by default
 }
 
@@ -76,7 +80,7 @@ export const fetchMS = async <ExpectedType>(params: FetchMSParams) => {
  * This is a generic function that wraps js fetch(), providing some aditional features
  * @returns The API response already processed
  */
-export const unwrappedFetchMS = async <ExpectedType>(params: FetchMSParams) => {
+export const unwrappedFetchMS = async <ExpectedType>(params: UnwrappedFetchMSParams) => {
     const { url, responseType, method, headers, body, wrapInData } = params;
     try {
         const response = await fetch(url, {

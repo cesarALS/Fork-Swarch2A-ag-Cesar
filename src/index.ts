@@ -9,7 +9,6 @@ import {
     signUp,
     SignUp,
 } from "./resolvers/authResolvers.js";
-import { todosResolver, createTodo } from "./resolvers/todoResolvers.js";
 import {
     CreateGroup,
     createGroupResolver,
@@ -30,6 +29,7 @@ import { dateScalar } from "./customScalars.js";
 import { ErrorCodes } from "./errorHandling.js";
 import { UUID } from "node:crypto";
 import { categoriesResolver, categoryResolver, createCategoryResolver, deleteCategory, updateCategory } from "./resolvers/categoriesResolvers.js";
+import { createEventResolver, deleteEventResolver, eventResolver, eventsResolver, NewEvent } from "./resolvers/eventsResolver.js";
 
 // Here, we define our graphql schema
 const typeDefs = `#graphql
@@ -38,6 +38,7 @@ const typeDefs = `#graphql
     scalar Date
 
     input SignUp {
+      username: String!
       email: String!
       password: String!
     }
@@ -52,23 +53,6 @@ const typeDefs = `#graphql
       email: String!
       username: String!
       isSuperUser: Boolean!
-    }
-
-    type Todo {
-      id: ID!
-      text: String!
-      done: Boolean!
-      user: TodoUser!
-    }
-
-    type TodoUser {
-      id: ID!
-      name: String!
-    }
-
-    input NewTodo {
-      text: String!
-      name: String!
     }
 
     type Image {
@@ -156,11 +140,32 @@ const typeDefs = `#graphql
       updatedAt: Date!
     }
 
+    input NewEvent {
+      title: String!
+      description: String!
+      place: String!
+      startsAt: Date!
+      endsAt: Date!
+      capacity: Int!
+    }
+
+    type Event {
+      id: ID!
+      title: String!
+      description: String!
+      place: String!
+      startsAt: Date!
+      endsAt: Date!
+      capacity: Int!
+      userCreatorId: ID!
+      groupCreatorId: ID
+      createdAt: Date!
+      updatedAt: Date!
+      deletedAt: Date
+    }
 
     type Query {
       authme: User!
-
-      todos: [Todo!]!
 
       groups: [Group!]!
       group(id: ID!): Group!
@@ -175,6 +180,10 @@ const typeDefs = `#graphql
       # Can be null because the category might not be found
       category(id: ID!): Category 
       categories: [Category!]!
+
+      # Events Microservicec
+      event(id: ID!): Event!
+      events: [Event!]!
     }
 
     type Mutation {
@@ -182,9 +191,6 @@ const typeDefs = `#graphql
       signUp(input: SignUp!): User!
       login(input: Login!): User!
       logout: Boolean!
-
-      # Todos
-      createTodo(input: NewTodo!): Todo!
 
       # Groups microservice
       createGroup(input: NewGroup!): GroupWithoutImage!
@@ -200,6 +206,10 @@ const typeDefs = `#graphql
       updateCategory(id: ID!, newName: String!): Category  
       # The boolean is used to indicate success or failure
       deleteCategory(id: ID!): Boolean! 
+
+      # Events Microservice
+      createEvent(input: NewEvent!): Event!
+      deleteEvent(id: ID!): Boolean!
     }
 `;
 
@@ -218,7 +228,6 @@ const resolvers = {
     Date: dateScalar,
     Query: {
         authme: async (_: any, {}, context: Context) => authme(context),
-        todos: () => todosResolver(),
         groups: async () => groupsResolver(),
         group: async (_: any, { id }: { id: UUID }) => groupResolver(id),
         user: async (_: any, { id }: { id: UUID }) => userResolver(id),
@@ -228,6 +237,8 @@ const resolvers = {
             examplePeopleResolver(id),
         category: async(_: any, { id }: { id: UUID }) => categoryResolver(id),
         categories: async () => categoriesResolver(),
+        event: async(_: any, { id }: { id: UUID }) => eventResolver(id),
+        events: async() => eventsResolver(),
     },
     Mutation: {
         signUp: async (
@@ -247,12 +258,6 @@ const resolvers = {
         logout: async (_: any, {}, context: Context) => {
             return await logout(context);
         },
-        createTodo: (
-            _: any,
-            { input }: { input: { text: string; name: string } },
-        ) => {
-            return createTodo(input.text, input.name);
-        },
         createGroup: async (_: any, { input }: { input: CreateGroup }) => {
             return await createGroupResolver(input);
         },
@@ -264,6 +269,8 @@ const resolvers = {
         createCategory: async (_: any, { name } : { name: string }) => createCategoryResolver(name),
         deleteCategory: async (_: any, { id } : { id: UUID }) => deleteCategory(id),
         updateCategory: async (_: any, { id, newName } : { id: UUID, newName: string}) => updateCategory(id, newName),
+        createEvent: async(_: any, { input } : { input: NewEvent }) => createEventResolver(input),
+        deleteEvent: async(_: any, { id } : { id: UUID }) => deleteEventResolver(id)
     },
 };
 
