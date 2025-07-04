@@ -19,5 +19,5 @@ npm start
 If you want to execute this project using Docker, just use this command:
 
 ```sh
-docker compose up --build
+docker compose --profile dev up --build
 ```
