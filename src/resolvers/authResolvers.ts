@@ -42,8 +42,8 @@ interface GetUserResponse extends CreateUserResponse {
 }
 
 const setHeaders = (context: Context, jwt: string) => {
-
     context.res.setHeader("Authorization", `Bearer ${jwt}`);
+    context.res.setHeader("Access-Control-Expose-Headers", "Authorization");
 };
 
 const getJWTHeader = (context: Context): string | undefined => {
