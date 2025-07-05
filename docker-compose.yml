@@ -1,10 +1,15 @@
-x-common-config: &common-config
+#--------------------------------------------------------------------------------------------------------------------------#
+#|                                                COMMON CONFIGURATIONS                                                   |#
+#--------------------------------------------------------------------------------------------------------------------------#
+# &mu-ag-common-config is what's called an anchor in .yaml files. It lets us reuse everything that follows, so that 
+# setting up the dev and prod profiles is easier
+x-mu-ag-common-config: &mu-ag-common-config
   build:
     context: .
   container_name: ${mu_ag_HOSTNAME:-mu_ag}
   hostname: ${mu_ag_HOSTNAME:-mu_ag}
-  ports:
-  - ${mu_ag_EXTERNAL_PORT:-4000}:${mu_ag_INTERNAL_PORT:-4000}
+  expose:
+      - ${mu_ag_INTERNAL_PORT:-4000}
   environment:
     GROUPS_MS: http://${mu_groups_ms_HOSTNAME:-mu_groups_ms}:${mu_groups_ms_INTERNAL_PORT:-8008}/api
     AUTH_MS: http://${mu_auth_ms_HOSTNAME:-mu_auth_ms}:${mu_auth_ms_INTERNAL_PORT:-5000}
@@ -12,18 +17,6 @@ x-common-config: &common-config
     USERS_MS: http://${mu_users_ms_HOSTNAME:-mu_users_ms}:${mu_users_ms_INTERNAL_PORT:-8008}/api/users
     CATEGORIES_MS: http://${mu_categories_ms_HOSTNAME:-mu_categories_ms}:${mu_categories_ms_INTERNAL_PORT:-8001}/api/categories
     EVENTS_MS: http://${mu_events_ms_HOSTNAME:-mu_events_ms}:${mu_events_ms_INTERNAL_PORT:-8080}/api/eventos
-
-services:
-  mu_ag:
-    <<: *common-config
-    profiles:
-      - prod
-  mu_ag_dev:
-    <<: *common-config
-    expose:
-      - ${mu_ag_INTERNAL_PORT:-4000}
-    profiles:
-      - dev
 
 
 include:
@@ -47,5 +40,32 @@ include:
   - path: categories_ms/docker-compose.yml
     project_directory: categories_ms/
 
+  # Events MS
   - path: events_ms/docker-compose.yml
     project_directory: events_ms/
+
+
+
+services:
+#--------------------------------------------------------------------------------------------------------------------------#
+#|                                                PROFILES FOR PRODUCTION                                                 |#
+#--------------------------------------------------------------------------------------------------------------------------#
+  # These profiles don't expose any ports to the host. The networks they are connected to are defined at the root of the
+  # project in a Docker Compose override file:
+  mu_ag_prod:
+    <<: *mu-ag-common-config
+    profiles:
+      - prod
+
+#--------------------------------------------------------------------------------------------------------------------------#
+#|                                                PROFILES FOR DEVELOPMENT                                                |#
+#--------------------------------------------------------------------------------------------------------------------------#
+  # API Gateway microservice for development (connected to the default network and exposing its ports to the host)
+  mu_ag_dev:
+    <<: *mu-ag-common-config
+    profiles:
+      - dev
+    ports:
+      - ${mu_ag_EXTERNAL_PORT:-4000}:${mu_ag_INTERNAL_PORT:-4000}
+    networks:
+      - default
