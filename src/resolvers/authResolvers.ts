@@ -41,16 +41,7 @@ interface GetUserResponse extends CreateUserResponse {
     profilePicUrl: string;
 }
 
-/** This is the name of the token to send to the frontend for the JWT Cookie */
-const AUTH_TOKEN = "token";
-
-const setCookies = (context: Context, jwt: string) => {
-    // TODO: the duration of the cookie coincides with the default duration of the JWT only
-    // because it is hardcoded. This should be set up through environmental variables
-    context.res.setHeader(
-        "Set-Cookie",
-        `${AUTH_TOKEN}=${jwt}; HttpOnly; Secure; Max-Age=3600`,
-    );
+const setHeaders = (context: Context, jwt: string) => {
 
     context.res.setHeader("Authorization", `Bearer ${jwt}`);
 };
@@ -95,7 +86,7 @@ export const signUp = async (data: SignUp, context: Context): Promise<User> | nu
             expectedStatus: 201
         })
 
-        setCookies(context, jwt);
+        setHeaders(context, jwt);
 
         return {
             id: id,
@@ -145,7 +136,7 @@ export const login = async (data: Login, context: Context): Promise<User> => {
 
     const loginResponse = response.responseBody.data;
     const id = loginResponse.id
-    setCookies(context, loginResponse.jwt);
+    setHeaders(context, loginResponse.jwt);
 
     // We use unwrappedFetchMS to handle the error ourselves.
     // If we can't fetch the username then allow the login, but with degraded functionality (no username displayed)
