@@ -42,13 +42,7 @@ interface GetUserResponse extends CreateUserResponse {
 }
 
 const getJWTHeader = (context: Context): string | undefined => {
-    let token: string = undefined;
-
-    token = context.req.headers.cookie?.split(" ")[1] ?? undefined;
-    if (!token)
-        token = context.req.headers.authorization?.split(" ")[1] ?? undefined;
-
-    return token;
+    return context.req.headers.authorization?.split(" ")[1] ?? undefined;
 };
 
 /** Sign Up Resolver */
