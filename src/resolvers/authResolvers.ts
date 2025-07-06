@@ -41,9 +41,6 @@ interface GetUserResponse extends CreateUserResponse {
     profilePicUrl: string;
 }
 
-/** This is the name of the token to send to the frontend for the JWT Cookie */
-const AUTH_TOKEN = "token";
-
 const getJWTHeader = (context: Context): string | undefined => {
     let token: string = undefined;
 
@@ -87,7 +84,7 @@ export const signUp = async (data: SignUp): Promise<User> | null => {
         return {
             id: id,
             email: data.email,
-            username: userMSResponse.responseBody.data.username, 
+            username: userMSResponse.responseBody.data.username,
             isSuperUser: false
         };
     } catch (err) {
@@ -138,7 +135,7 @@ export const login = async (data: Login): Promise<User> => {
     let username = ""
     try {
         const userMSResponse = await unwrappedFetchMS<GetUserResponse>({
-            url: `${URLS.USERS_MS}/${id}` 
+            url: `${URLS.USERS_MS}/${id}`
         })
         const userMSStatus = userMSResponse.status
         if (userMSStatus == 200) {
@@ -148,11 +145,11 @@ export const login = async (data: Login): Promise<User> => {
         console.log(`Couldn't fetch the username of user with id ${id}`)
         console.log("Error:", err)
     }
-    
+
     return {
         id: id,
         email: data.email,
-        username: username, 
+        username: username,
         isSuperUser: false,
     };
 };
@@ -224,7 +221,7 @@ export const logout = async (context: Context): Promise<Boolean> => {
                 code: ErrorCodes.INVALID_AUTH_TOKEN,
             },
         });
-    } 
+    }
 
     return true;
 };
