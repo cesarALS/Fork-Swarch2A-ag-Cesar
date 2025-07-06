@@ -44,17 +44,6 @@ interface GetUserResponse extends CreateUserResponse {
 /** This is the name of the token to send to the frontend for the JWT Cookie */
 const AUTH_TOKEN = "token";
 
-const setCookies = (context: Context, jwt: string) => {
-    // TODO: the duration of the cookie coincides with the default duration of the JWT only
-    // because it is hardcoded. This should be set up through environmental variables
-    context.res.setHeader(
-        "Set-Cookie",
-        `${AUTH_TOKEN}=${jwt}; HttpOnly; Secure; Max-Age=3600`,
-    );
-
-    context.res.setHeader("Authorization", `Bearer ${jwt}`);
-};
-
 const getJWTHeader = (context: Context): string | undefined => {
     let token: string = undefined;
 
@@ -66,7 +55,7 @@ const getJWTHeader = (context: Context): string | undefined => {
 };
 
 /** Sign Up Resolver */
-export const signUp = async (data: SignUp, context: Context): Promise<User> | null => {
+export const signUp = async (data: SignUp): Promise<User> | null => {
     const authResponse = await fetchMS<SignUpResponse>({
         url: `${URLS.AUTH_MS}/signup`,
         method: "POST",
@@ -94,8 +83,6 @@ export const signUp = async (data: SignUp, context: Context): Promise<User> | nu
             body: JSON.stringify(userMSBody),
             expectedStatus: 201
         })
-
-        setCookies(context, jwt);
 
         return {
             id: id,
@@ -133,7 +120,7 @@ export const signUp = async (data: SignUp, context: Context): Promise<User> | nu
 };
 
 /**Login Resolver */
-export const login = async (data: Login, context: Context): Promise<User> => {
+export const login = async (data: Login): Promise<User> => {
     const response = await fetchMS<LoginResponse>({
         url: `${URLS.AUTH_MS}/login`,
         method: "POST",
@@ -145,7 +132,6 @@ export const login = async (data: Login, context: Context): Promise<User> => {
 
     const loginResponse = response.responseBody.data;
     const id = loginResponse.id
-    setCookies(context, loginResponse.jwt);
 
     // We use unwrappedFetchMS to handle the error ourselves.
     // If we can't fetch the username then allow the login, but with degraded functionality (no username displayed)
