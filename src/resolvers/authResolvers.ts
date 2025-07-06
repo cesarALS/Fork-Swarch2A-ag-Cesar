@@ -4,11 +4,15 @@ import { Context } from "../index.js";
 import { GraphQLError } from "graphql";
 import { ErrorCodes } from "../errorHandling.js";
 
-interface User {
+interface UserNoToken {
     id: UUID;
     email: string;
     username: string;
-    isSuperUser: boolean;
+    isSuperUser: boolean
+}
+
+interface User extends UserNoToken{
+    authToken: string;
 }
 
 export interface Login {
@@ -79,7 +83,8 @@ export const signUp = async (data: SignUp): Promise<User> | null => {
             id: id,
             email: data.email,
             username: userMSResponse.responseBody.data.username,
-            isSuperUser: false
+            isSuperUser: false,
+            authToken: jwt,
         };
     } catch (err) {
         console.log("Error:", err)
@@ -122,7 +127,8 @@ export const login = async (data: Login): Promise<User> => {
     });
 
     const loginResponse = response.responseBody.data;
-    const id = loginResponse.id
+    const id = loginResponse.id;
+    const jwt = response.responseBody.data.jwt;
 
     // We use unwrappedFetchMS to handle the error ourselves.
     // If we can't fetch the username then allow the login, but with degraded functionality (no username displayed)
@@ -145,11 +151,12 @@ export const login = async (data: Login): Promise<User> => {
         email: data.email,
         username: username,
         isSuperUser: false,
+        authToken: jwt,
     };
 };
 
 /** AuthMe Resolver */
-export const authme = async (context: Context): Promise<User> => {
+export const authme = async (context: Context): Promise<UserNoToken> => {
     const token = getJWTHeader(context);
     if (!token) {
         throw new GraphQLError("Token no encontrado", {

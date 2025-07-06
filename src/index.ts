@@ -53,6 +53,14 @@ const typeDefs = `#graphql
       email: String!
       username: String!
       isSuperUser: Boolean!
+      authToken: String!
+    }
+
+    type UserNoToken {
+      id: ID!
+      email: String!
+      username: String!
+      isSuperUser: Boolean!
     }
 
     type Image {
@@ -165,7 +173,7 @@ const typeDefs = `#graphql
     }
 
     type Query {
-      authme: User!
+      authme: UserNoToken!
 
       groups: [Group!]!
       group(id: ID!): Group!
