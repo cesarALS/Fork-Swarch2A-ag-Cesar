@@ -53,6 +53,14 @@ const typeDefs = `#graphql
       email: String!
       username: String!
       isSuperUser: Boolean!
+      authToken: String!
+    }
+
+    type UserNoToken {
+      id: ID!
+      email: String!
+      username: String!
+      isSuperUser: Boolean!
     }
 
     type Image {
@@ -165,7 +173,7 @@ const typeDefs = `#graphql
     }
 
     type Query {
-      authme: User!
+      authme: UserNoToken!
 
       groups: [Group!]!
       group(id: ID!): Group!
@@ -244,16 +252,14 @@ const resolvers = {
         signUp: async (
             _: any,
             { input }: { input: SignUp },
-            context: Context,
         ) => {
-            return await signUp(input, context);
+            return await signUp(input);
         },
         login: async (
             _: any,
             { input }: { input: Login },
-            context: Context,
         ) => {
-            return await login(input, context);
+            return await login(input);
         },
         logout: async (_: any, {}, context: Context) => {
             return await logout(context);

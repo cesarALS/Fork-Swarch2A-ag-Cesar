@@ -4,11 +4,15 @@ import { Context } from "../index.js";
 import { GraphQLError } from "graphql";
 import { ErrorCodes } from "../errorHandling.js";
 
-interface User {
+interface UserNoToken {
     id: UUID;
     email: string;
     username: string;
-    isSuperUser: boolean;
+    isSuperUser: boolean
+}
+
+interface User extends UserNoToken{
+    authToken: string;
 }
 
 export interface Login {
@@ -41,32 +45,12 @@ interface GetUserResponse extends CreateUserResponse {
     profilePicUrl: string;
 }
 
-/** This is the name of the token to send to the frontend for the JWT Cookie */
-const AUTH_TOKEN = "token";
-
-const setCookies = (context: Context, jwt: string) => {
-    // TODO: the duration of the cookie coincides with the default duration of the JWT only
-    // because it is hardcoded. This should be set up through environmental variables
-    context.res.setHeader(
-        "Set-Cookie",
-        `${AUTH_TOKEN}=${jwt}; HttpOnly; Secure; Max-Age=3600`,
-    );
-
-    context.res.setHeader("Authorization", `Bearer ${jwt}`);
-};
-
 const getJWTHeader = (context: Context): string | undefined => {
-    let token: string = undefined;
-
-    token = context.req.headers.cookie?.split(" ")[1] ?? undefined;
-    if (!token)
-        token = context.req.headers.authorization?.split(" ")[1] ?? undefined;
-
-    return token;
+    return context.req.headers.authorization?.split(" ")[1] ?? undefined;
 };
 
 /** Sign Up Resolver */
-export const signUp = async (data: SignUp, context: Context): Promise<User> | null => {
+export const signUp = async (data: SignUp): Promise<User> | null => {
     const authResponse = await fetchMS<SignUpResponse>({
         url: `${URLS.AUTH_MS}/signup`,
         method: "POST",
@@ -95,13 +79,12 @@ export const signUp = async (data: SignUp, context: Context): Promise<User> | nu
             expectedStatus: 201
         })
 
-        setCookies(context, jwt);
-
         return {
             id: id,
             email: data.email,
-            username: userMSResponse.responseBody.data.username, 
-            isSuperUser: false
+            username: userMSResponse.responseBody.data.username,
+            isSuperUser: false,
+            authToken: jwt,
         };
     } catch (err) {
         console.log("Error:", err)
@@ -133,7 +116,7 @@ export const signUp = async (data: SignUp, context: Context): Promise<User> | nu
 };
 
 /**Login Resolver */
-export const login = async (data: Login, context: Context): Promise<User> => {
+export const login = async (data: Login): Promise<User> => {
     const response = await fetchMS<LoginResponse>({
         url: `${URLS.AUTH_MS}/login`,
         method: "POST",
@@ -144,15 +127,15 @@ export const login = async (data: Login, context: Context): Promise<User> => {
     });
 
     const loginResponse = response.responseBody.data;
-    const id = loginResponse.id
-    setCookies(context, loginResponse.jwt);
+    const id = loginResponse.id;
+    const jwt = response.responseBody.data.jwt;
 
     // We use unwrappedFetchMS to handle the error ourselves.
     // If we can't fetch the username then allow the login, but with degraded functionality (no username displayed)
     let username = ""
     try {
         const userMSResponse = await unwrappedFetchMS<GetUserResponse>({
-            url: `${URLS.USERS_MS}/${id}` 
+            url: `${URLS.USERS_MS}/${id}`
         })
         const userMSStatus = userMSResponse.status
         if (userMSStatus == 200) {
@@ -162,17 +145,18 @@ export const login = async (data: Login, context: Context): Promise<User> => {
         console.log(`Couldn't fetch the username of user with id ${id}`)
         console.log("Error:", err)
     }
-    
+
     return {
         id: id,
         email: data.email,
-        username: username, 
+        username: username,
         isSuperUser: false,
+        authToken: jwt,
     };
 };
 
 /** AuthMe Resolver */
-export const authme = async (context: Context): Promise<User> => {
+export const authme = async (context: Context): Promise<UserNoToken> => {
     const token = getJWTHeader(context);
     if (!token) {
         throw new GraphQLError("Token no encontrado", {
@@ -238,7 +222,7 @@ export const logout = async (context: Context): Promise<Boolean> => {
                 code: ErrorCodes.INVALID_AUTH_TOKEN,
             },
         });
-    } 
+    }
 
     return true;
 };
