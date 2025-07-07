@@ -227,6 +227,7 @@ const typeDefs = `#graphql
 export interface Context {
     req: IncomingMessage;
     res: ServerResponse;
+    authToken?: string;
 }
 
 /**
@@ -298,7 +299,11 @@ const server = new ApolloServer<Context>({
 
 const { url } = await startStandaloneServer(server, {
     listen: { port: 4000 }, // TODO: usar una variable de entorno
-    context: async ({ req, res }) => ({ req, res }),
+    context: async ({ req, res }) => {
+      // We'll add the Auth Token directly in the context, for comfort purposes
+      const authToken = req.headers.authorization.split(" ")[1];
+      return { req, res, authToken };
+    },
 });
 
 console.log(`🚀 Server ready at: ${url}`);
